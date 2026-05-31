@@ -1,0 +1,38 @@
+studymeet/
+├── backend/
+│   ├── src/
+│   │   ├── index.ts
+│   │   ├── server.ts
+│   │   ├── routes/
+│   │   │   └── rooms.ts
+│   │   ├── services/
+│   │   │   └── livekit.ts
+│   │   └── db/
+│   │       └── schema.prisma
+│   ├── Dockerfile
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── pages/
+│   │   │   ├── JoinRoom.tsx
+│   │   │   └── Room.tsx
+│   │   ├── components/
+│   │   │   ├── VideoConference.tsx
+│   │   │   ├── Chat.tsx
+│   │   │   └── ParticipantList.tsx
+│   │   └── main.tsx
+│   ├── Dockerfile
+│   ├── package.json
+│   └── index.html
+├── docker-compose.yml
+├── kubernetes/
+│   ├── backend-deployment.yaml
+│   ├── backend-service.yaml
+│   ├── frontend-deployment.yaml
+│   ├── frontend-service.yaml
+│   ├── postgres-deployment.yaml
+│   ├── redis-deployment.yaml
+│   └── ingress.yaml
+└── .env
