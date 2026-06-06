@@ -1,0 +1,11 @@
+{
+  "name": "yaml-loader-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node load-yaml.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.2.0"
+  }
+}

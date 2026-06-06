@@ -1,0 +1,11 @@
+study-app/
+├── apps/
+│   └── web/                  (Next.js frontend)
+├── services/
+│   └── user-auth/             (Node/Express + Prisma)
+├── gateway/
+│   └── nginx.conf             (NGINX routing)
+├── docker-compose.yml         (ties everything together)
+├── .env                      (JWT_SECRET, DB_URL)
+├── package.json               pnpm workspace root
+└── pnpm-workspace.yaml
