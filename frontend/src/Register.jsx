@@ -16,7 +16,8 @@ function Register() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '400px', margin: 'auto' }}>
+    <div style={{ backgroundColor: "lightblue", height: "100vh",padding: '40px', maxWidth: '400px', margin: 'auto' }}>
+   
       <h2>Create StudyMeet Account</h2>
       <form onSubmit={handleRegister}>
         <input 

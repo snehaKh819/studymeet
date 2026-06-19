@@ -5,7 +5,7 @@ import Login from './Login';
 function App() {
   return (
     <Router>
-      <nav style={{ padding: '20px', background: '#f4f4f4', textAlign: 'center' }}>
+      <nav style={{ backgroundColor: "lightblue", height: "100vh",padding: '20px', background: '#f4f4f4', textAlign: 'center' }}>
         <Link to="/register" style={{ marginRight: '15px' }}>Register</Link>
         <Link to="/login">Login</Link>
       </nav>
