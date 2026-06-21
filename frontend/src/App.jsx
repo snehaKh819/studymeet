@@ -1,8 +1,24 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import Register from './Register';
 import Login from './Login';
 
 function App() {
+  const [hoveredTab, setHoveredTab] = useState(null);
+
+  const getNavStyle = (isActive, tabId) => ({
+    marginRight: tabId !== 'login' ? '20px' : '0px',
+    textDecoration: 'none',
+    fontSize: '16px',
+    fontWeight: '600',
+    padding: '8px 4px',
+    position: 'relative',
+    transition: 'all 0.2s ease',
+    color: isActive ? '#581c87' : hoveredTab === tabId ? '#9333ea' : '#6b7280',
+    borderBottom: isActive ? '3px solid #a855f7' : '3px solid transparent',
+    borderRadius: '2px'
+  });
+
   return (
     <Router>
       <nav style={{ 
@@ -13,21 +29,39 @@ function App() {
         display: 'flex',
         justifyContent: 'center',
         padding: '16px', 
-        backgroundColor: 'rgba(255, 255, 255, 0.75)',
+        backgroundColor: 'rgba(255, 255, 255, 0.75)', 
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid #e9d5ff', 
         zIndex: 10,
         fontFamily: 'sans-serif'
       }}>
-        <Link to="/" style={{ marginRight: '20px', textDecoration: 'none', color: '#581c87', fontWeight: '500' }}>
+        
+        <NavLink 
+          to="/" 
+          style={({ isActive }) => getNavStyle(isActive, 'home')}
+          onMouseEnter={() => setHoveredTab('home')}
+          onMouseLeave={() => setHoveredTab(null)}
+        >
           Home
-        </Link>
-        <Link to="/register" style={{ marginRight: '20px', textDecoration: 'none', color: '#7e22ce', fontWeight: '600' }}>
+        </NavLink>
+
+        <NavLink 
+          to="/register" 
+          style={({ isActive }) => getNavStyle(isActive, 'register')}
+          onMouseEnter={() => setHoveredTab('register')}
+          onMouseLeave={() => setHoveredTab(null)}
+        >
           Register
-        </Link>
-        <Link to="/login" style={{ textDecoration: 'none', color: '#7e22ce', fontWeight: '600' }}>
+        </NavLink>
+
+        <NavLink 
+          to="/login" 
+          style={({ isActive }) => getNavStyle(isActive, 'login')}
+          onMouseEnter={() => setHoveredTab('login')}
+          onMouseLeave={() => setHoveredTab(null)}
+        >
           Login
-        </Link>
+        </NavLink>
       </nav>
 
       <Routes>
