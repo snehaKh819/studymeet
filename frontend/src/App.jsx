@@ -7,9 +7,9 @@ function App() {
   const [hoveredTab, setHoveredTab] = useState(null);
 
   const getNavStyle = (isActive, tabId) => ({
-    marginRight: tabId !== 'login' ? '20px' : '0px',
+    marginLeft: '20px',
     textDecoration: 'none',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
     padding: '8px 4px',
     position: 'relative',
@@ -27,41 +27,52 @@ function App() {
         left: 0,
         right: 0,
         display: 'flex',
-        justifyContent: 'center',
-        padding: '16px', 
-        backgroundColor: 'rgba(255, 255, 255, 0.75)', 
-        backdropFilter: 'blur(8px)',
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        padding: '14px 40px', 
+        backgroundColor: 'rgba(255, 255, 255, 0.85)', 
+        backdropFilter: 'blur(10px)',
         borderBottom: '1px solid #e9d5ff', 
         zIndex: 10,
-        fontFamily: 'sans-serif'
+        fontFamily: 'sans-serif',
+        boxSizing: 'border-box'
       }}>
         
         <NavLink 
           to="/" 
-          style={({ isActive }) => getNavStyle(isActive, 'home')}
-          onMouseEnter={() => setHoveredTab('home')}
-          onMouseLeave={() => setHoveredTab(null)}
+          style={{ textDecoration: 'none', color: '#581c87', fontWeight: '800', fontSize: '20px' }}
         >
-          Home
+          StudyMeet
         </NavLink>
 
-        <NavLink 
-          to="/register" 
-          style={({ isActive }) => getNavStyle(isActive, 'register')}
-          onMouseEnter={() => setHoveredTab('register')}
-          onMouseLeave={() => setHoveredTab(null)}
-        >
-          Register
-        </NavLink>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <NavLink 
+            to="/" 
+            style={({ isActive }) => getNavStyle(isActive, 'home')}
+            onMouseEnter={() => setHoveredTab('home')}
+            onMouseLeave={() => setHoveredTab(null)}
+          >
+            Home
+          </NavLink>
 
-        <NavLink 
-          to="/login" 
-          style={({ isActive }) => getNavStyle(isActive, 'login')}
-          onMouseEnter={() => setHoveredTab('login')}
-          onMouseLeave={() => setHoveredTab(null)}
-        >
-          Login
-        </NavLink>
+          <NavLink 
+            to="/register" 
+            style={({ isActive }) => getNavStyle(isActive, 'register')}
+            onMouseEnter={() => setHoveredTab('register')}
+            onMouseLeave={() => setHoveredTab(null)}
+          >
+            Register
+          </NavLink>
+
+          <NavLink 
+            to="/login" 
+            style={({ isActive }) => getNavStyle(isActive, 'login')}
+            onMouseEnter={() => setHoveredTab('login')}
+            onMouseLeave={() => setHoveredTab(null)}
+          >
+            Login
+          </NavLink>
+        </div>
       </nav>
 
       <Routes>
@@ -71,21 +82,57 @@ function App() {
         <Route path="/" element={
           <div style={{ 
             backgroundColor: "#f3e8ff", 
-            height: "100vh", 
+            minHeight: "100vh", 
             width: "100vw",
             display: "flex", 
             flexDirection: "column",
             justifyContent: "center", 
             alignItems: "center",
             fontFamily: "sans-serif",
-            boxSizing: "border-box"
+            boxSizing: "border-box",
+            padding: "20px"
           }}>
-            <h1 style={{ color: '#581c87', fontSize: '3rem', marginBottom: '10px', textAlign: 'center' }}>
+            <h1 style={{ 
+              color: '#581c87', 
+              fontSize: 'clamp(2.5rem, 6vw, 3.5rem)', 
+              marginBottom: '16px', 
+              fontWeight: '800',
+              textAlign: 'center',
+              lineHeight: '1.2',
+              letterSpacing: '-0.5px'
+            }}>
               Welcome to StudyMeet
             </h1>
-            <p style={{ color: '#6b21a8', fontSize: '1.2rem', margin: 0, textAlign: 'center' }}>
-              Collaborate, learn, and grow with your peers.
+            
+            <p style={{ 
+              color: '#6b21a8', 
+              fontSize: 'clamp(1.1rem, 2.5vw, 1.3rem)', 
+              margin: '0 0 32px 0', 
+              textAlign: 'center',
+              maxWidth: '540px',
+              lineHeight: '1.5'
+            }}>
+              Collaborate, track your milestones, learn, and grow together with your peers.
             </p>
+
+            <NavLink
+              to="/login"
+              style={{
+                padding: '12px 28px',
+                backgroundColor: '#a855f7',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '15px',
+                boxShadow: '0 4px 12px rgba(168, 85, 247, 0.25)',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#9333ea'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#a855f7'}
+            >
+              Get Started
+            </NavLink>
           </div>
         } />
       </Routes>
