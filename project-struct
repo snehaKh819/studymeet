@@ -1,6 +1,8 @@
 study-app/
 ├── apps/
 │   └── web/                  (Next.js frontend)
+|── user-serive/
+|
 ├── services/
 │   └── user-auth/             (Node/Express + Prisma)
 ├── gateway/
