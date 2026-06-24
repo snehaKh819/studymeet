@@ -4,14 +4,19 @@ import API from './api';
 function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      const response = await API.post('/register', { email, password });
-      alert(response.data.message); 
+      const response = await API.post('/register', { email, password, username });
+      localStorage.setItem('token',response.data.token);
+      localStorage.setItem('user',JSON.stringify(response.data.user));
+      window.location.href='/dashboard';
     } catch (error) {
-      alert(error.response?.data?.message || 'Registration failed');
+      setError(error.response?.data?.error || 'Registration failed');
     }
   };
 
@@ -42,6 +47,29 @@ function Register() {
         </h2>
         
         <form onSubmit={handleRegister}>
+          <label style={{
+            display: 'block',
+            marginBottom: '6px',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#6b21a8'
+          }}>
+            Username
+          </label>
+          <input type="text" placeholder="yourname" value={username} onChange={(e)=>setUsername(e.target.value)} required
+          style={{
+            display: 'block',
+            width: '100%',
+            marginBottom: '16px',
+            padding: '10px',
+            borderRadius: '6px',  
+            border: '1px solid #d8b4fe',
+            boxSizing: 'border-box',
+            background: 'white',
+            color: 'black'
+          }}
+          />
+
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b21a8' }}>
             Email Address
           </label>
@@ -86,6 +114,8 @@ function Register() {
             }}
           />
           
+          {error && <p style={{ color: 'red', fontSize: '13px', marginBottom: '12px'}}>{error}</p>}
+
           <button 
             type="submit" 
             style={{ 

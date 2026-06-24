@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-do
 import { useState } from 'react';
 import Register from './Register';
 import Login from './Login';
+import Dashboard from './Dashboard';
 
 function App() {
   const [hoveredTab, setHoveredTab] = useState(null);
@@ -78,7 +79,7 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/" element={
           <div style={{ 
             backgroundColor: "#f3e8ff", 

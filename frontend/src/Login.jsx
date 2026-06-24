@@ -4,14 +4,18 @@ import API from './api';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const response = await API.post('/login', { email, password });
-      alert(response.data.message); 
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      window.location.href = '/dashboard';
     } catch (error) {
-      alert(error.response?.data?.message || 'Login failed');
+      setError(error.response?.data?.message || 'Login failed');
     }
   };
 
@@ -86,6 +90,8 @@ function Login() {
             }}
           />
           
+          {error && <p style={{ color: 'red', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
+
           <button 
             type="submit" 
             style={{ 
