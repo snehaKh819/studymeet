@@ -14,5 +14,18 @@ model AuthCredential {
   createdAt    DateTime @default(now())  @map("created_at")
   updatedAt    DateTime @updatedAt       @map("updated_at")
 
+  rooms Room[]
+
   @@map("auth_credentials")
+}
+
+model Room {
+  id        String         @id @default(uuid()) @map("room_id")
+  roomName  String         @map("room_name")
+  hostId    String         @map("host_id")
+  host      AuthCredential @relation(fields: [hostId], references: [id])
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt     @map("updated_at")
+
+  @@map("rooms")
 } 
