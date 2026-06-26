@@ -1,21 +1,25 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg'; 
-import pg from 'pg';                         
+import pg from 'pg';                 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5433/studymeet_auth?schema=public";
+
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: 'Username, email, and password are required' });
     }
 
     const existingUser = await prisma.authCredential.findUnique({
@@ -30,7 +34,7 @@ export const register = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const newCredential = await prisma.authCredential.create({
-      data: { email, passwordHash }
+      data: { username, email, passwordHash }
     });
 
     const token = jwt.sign(
@@ -42,7 +46,7 @@ export const register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: { id: newCredential.id, email: newCredential.email }
+      user: { id: newCredential.id, email: newCredential.email, username: newCredential.username }
     });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed', error: error.message });
@@ -52,6 +56,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Incoming Login Request:", { email, password });
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -62,10 +67,12 @@ export const login = async (req, res) => {
     });
 
     if (!credential) {
+      console.log("User not found in DB for email:", email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, credential.passwordHash);
+    console.log("Bcrypt Match Result:", isPasswordValid);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -79,7 +86,7 @@ export const login = async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       token,
-      user: { id: credential.id, email: credential.email }
+      user: { id: credential.id, email: credential.email, username: credential.username }
     });
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
