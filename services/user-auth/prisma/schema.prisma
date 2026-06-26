@@ -9,9 +9,10 @@ generator client {
 model AuthCredential {
   id           String   @id @default(uuid())
   email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  username     String
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now())  @map("created_at")
+  updatedAt    DateTime @updatedAt       @map("updated_at")
 
   @@map("auth_credentials")
 }
