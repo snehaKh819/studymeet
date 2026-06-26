@@ -1,13 +1,31 @@
 study-app/
 ├── apps/
-│   └── web/                  (Next.js frontend)
-|── user-serive/
-|
-├── services/
-│   └── user-auth/             (Node/Express + Prisma)
+│   └── web/                      # Next.js frontend application
+│       ├── app/                  # Next.js App Router (pages, layout, components)
+│       ├── public/               # Static assets (images, icons)
+│       ├── package.json
+│       └── next.config.js
+│
+├── services/                     # Backend Microservices
+│   ├── user-service/             # Core User Profiles & metadata management
+│   │   ├── src/
+│   │   ├── prisma/               # Schema & migrations for user data
+│   │   ├── package.json
+│   │   └── Dockerfile
+│   │
+│   └── user-auth/                # Node/Express + Prisma Authentication service
+│       ├── src/
+│       │   ├── controllers/      # Login, Register, Refresh token handlers
+│       │   ├── routes/           # Auth route definitions
+│       │   └── index.js          # Service entry point
+│       ├── prisma/               # Authentication models (Credentials, Tokens)
+│       ├── package.json
+│       └── Dockerfile
+│
 ├── gateway/
-│   └── nginx.conf             (NGINX routing)
-├── docker-compose.yml         (ties everything together)
-├── .env                      (JWT_SECRET, DB_URL)
-├── package.json               pnpm workspace root
-└── pnpm-workspace.yaml
+│   └── nginx.conf                # NGINX reverse proxy routing API requests to services
+│
+├── docker-compose.yml            # Local development orchestration (DBs, NGINX, Services)
+├── .env                          # Shared local environment secrets (JWT_SECRET, DB_URL)
+├── package.json                  # pnpm workspace root configuration
+└── pnpm-workspace.yaml          # Defines ['apps/*', 'services/*'] workspace paths
