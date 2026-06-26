@@ -18,9 +18,9 @@ export default function Register() {
 
     try {
       const response = await api.post('/auth/register', { username, email, password });
-      
-      localStorage.setItem('token', response.data.token);
-      
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       navigate('/dashboard');
     } catch (error) {
       console.error(error);

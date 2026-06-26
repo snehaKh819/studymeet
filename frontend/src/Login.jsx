@@ -17,11 +17,10 @@ export default function Login() {
 
     try {
       const response = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      
-      const userPayload = response.data.user || { email: email, username: email.split('@')[0] }; 
-      localStorage.setItem('user', JSON.stringify(userPayload));
-      
+      const userPayload = response.data.user;
+      if (userPayload) {
+        localStorage.setItem('user', JSON.stringify(userPayload));
+      }
       navigate('/dashboard');
     } catch (error) {
       console.error(error);

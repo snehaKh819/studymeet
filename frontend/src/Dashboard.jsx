@@ -1,14 +1,23 @@
 import {useEffect,useState} from 'react';
+import api from './api';
 
 function Dashboard(){
     const [user,setUser]=useState(null);
     useEffect(()=>{
         const userData=localStorage.getItem('user');
-        if(!userData){
-            window.location.href='/login';
-            return;
+        if (userData) {
+            setUser(JSON.parse(userData));
         }
-        setUser(JSON.parse(userData));
+
+        api.get('/me')
+          .then((response) => {
+            setUser(response.data.user);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+          })
+          .catch(() => {
+            localStorage.removeItem('user');
+            window.location.href='/login';
+          });
     }, []);
     if(!user){
         return null;
