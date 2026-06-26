@@ -15,4 +15,4 @@ model AuthCredential {
   updatedAt    DateTime @updatedAt       @map("updated_at")
 
   @@map("auth_credentials")
-}
+} 
