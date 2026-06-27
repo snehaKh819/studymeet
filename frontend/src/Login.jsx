@@ -1,119 +1,64 @@
-import { useState } from 'react';
-import API from './api';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
+import api from './utils/api';
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
+    setMessage('');
+
     try {
-      const response = await API.post('/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      window.location.href = '/dashboard';
+      const response = await api.post('/auth/login', { email, password });
+      const userPayload = response.data.user;
+      if (userPayload) {
+        localStorage.setItem('user', JSON.stringify(userPayload));
+      }
+      navigate('/dashboard');
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed');
+      console.error(error);
+      setMessage(error.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ 
-      backgroundColor: "#f3e8ff", 
-      height: "100vh", 
-      width: "100vw",
-      display: "flex", 
-      justifyContent: "center", 
-      alignItems: "center",
-      fontFamily: "sans-serif",
-      boxSizing: "border-box"
-    }}>
-      
-      <div style={{ 
-        backgroundColor: "#ffffff", 
-        padding: '40px', 
-        borderRadius: '12px', 
-        boxShadow: '0 4px 10px rgba(88, 28, 135, 0.08)',
-        width: '100%',
-        maxWidth: '380px',
-        boxSizing: 'border-box'
-      }}>
-        
-        <h2 style={{ marginTop: 0, marginBottom: '24px', textAlign: 'center', color: '#581c87' }}>
-          Login to StudyMeet
-        </h2>
-        
-        <form onSubmit={handleLogin}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b21a8' }}>
-            Email Address
-          </label>
+    <div style={{ maxWidth: '400px', margin: '120px auto 50px auto', padding: '20px', border: '1px solid #e9d5ff', borderRadius: '12px', fontFamily: 'sans-serif', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+      <h2 style={{ color: '#581c87', marginTop: 0 }}>Sign In</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ fontWeight: '600', color: '#4b5563', fontSize: '14px' }}>Email Address</label>
           <input 
             type="email" 
-            placeholder="name@example.com" 
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
             required 
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              marginBottom: '16px', 
-              background: 'rgb(255,255,255,0.9)',
-              color:'black',
-              padding: '10px', 
-              borderRadius: '6px', 
-              border: '1px solid #d8b4fe',
-              boxSizing: 'border-box'
-            }}
+            style={{ width: '100%', padding: '10px', marginTop: '6px', border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box' }}
           />
-          
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b21a8' }}>
-            Password
-          </label>
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontWeight: '600', color: '#4b5563', fontSize: '14px' }}>Password</label>
           <input 
             type="password" 
-            placeholder="••••••••" 
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             required 
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              marginBottom: '24px', 
-              padding: '10px', 
-              background: 'rgb(255,255,255,0.9)',
-              color:'black',
-              borderRadius: '6px', 
-              border: '1px solid #d8b4fe',
-              boxSizing: 'border-box'
-            }}
+            style={{ width: '100%', padding: '10px', marginTop: '6px', border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box' }}
           />
-          
-          {error && <p style={{ color: 'red', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
-
-          <button 
-            type="submit" 
-            style={{ 
-              width: '100%',
-              padding: '12px', 
-              backgroundColor: '#a855f7', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '6px', 
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#9333ea'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#a855f7'}
-          >
-            Login
-          </button>
-        </form>
-      </div>
+        </div>
+        <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', backgroundColor: '#a855f7', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+      </form>
+      {message && <p style={{ marginTop: '15px', color: 'red', fontSize: '14px', textAlign: 'center' }}>{message}</p>}
     </div>
   );
 }
-
-export default Login;

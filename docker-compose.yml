@@ -5,35 +5,18 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - user-service
+      - user-auth
       - frontend
 
-  user-service:
-    build: ./user-service
-    env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
+  user-auth:
+    build: ./services/user-auth
+    env_file:
+      - ./services/user-auth/.env
     restart: on-failure
-
-  db:
-    image: postgres:15-alpine
-    env_file: .env
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
-      interval: 5s
-      retries: 5
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
-
-volumes:
-    pgdata:
