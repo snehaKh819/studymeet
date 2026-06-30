@@ -4,6 +4,7 @@ import Register from './Register';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import ProtectedRoute from './ProtectedRoute';
+import Room from './Room';
 
 function App() {
   const [hoveredTab, setHoveredTab] = useState(null);
@@ -81,7 +82,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/" element={
+        <Route path="/room/:roomId" element={<Room />} />
           <div style={{ 
             backgroundColor: "#f3e8ff", 
             minHeight: "100vh", 
