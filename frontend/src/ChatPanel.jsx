@@ -8,24 +8,32 @@ function ChatPanel({roomId,currentUser}){
     const socketRef = useRef(null);
 
     useEffect(()=>{
+        if (!roomId) return undefined;
+
         const socket=io(`http://localhost/chat`,{
-            query:{roomId,token:localStorage.getItem('token')}
+            query:{roomId},
+            withCredentials:true,
+            transports:['websocket','polling']
         });
         socketRef.current=socket;
         socket.on('message',(msg)=>{
             setMessages((prevmsgs)=>[...prevmsgs,msg]);
         });
-        return ()=>socket.disconnect();
+        socket.emit('joinRoom', roomId);
+
+        return ()=>{
+            socket.emit('leave_room', roomId);
+            socket.disconnect();
+        };
     },[roomId]);
 
     const sendMessage=(e)=>{
         e.preventDefault();
-        if(!input.trim()){
+        if(!input.trim() || !socketRef.current){
             return;
         }
         socketRef.current.emit('message',{
             text:input,
-            username:currentUser.username,
             roomId
         });
         setInput('');

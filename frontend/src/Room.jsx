@@ -4,15 +4,23 @@ import {LiveKitRoom,VideoConference} from '@livekit/components-react';
 import '@livekit/components-styles';
 import {getLiveKitToken} from './lib/livekit';
 import ChatPanel from './ChatPanel';
-import {useAuthStore} from './store/authStore';
 
 function Room(){
     const {roomId}=useParams();
     const [token,setToken]=useState(null);
     const [error,setError]=useState('');
-    const {user}=useAuthStore();
+    const [currentUser,setCurrentUser]=useState(null);
 
     useEffect(()=>{
+        const storedUser = localStorage.getItem('user');
+        if (storedUser && storedUser !== 'undefined') {
+            try {
+                setCurrentUser(JSON.parse(storedUser));
+            } catch {
+                setCurrentUser(null);
+            }
+        }
+
         getLiveKitToken(roomId).then(setToken).catch(()=>setError('Could not join room. Try again.😓'));
     },[roomId]);
 
@@ -37,7 +45,7 @@ function Room(){
         <div style={{ display:'flex'}}>
             <div style={{flex:1}}>
                 <LiveKitRoom
-                    serverUrl={import.meta.env.VITE_LIVEKIT_URL}
+                    serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc'}
                     token={token}
                     connect={true}
                     video={true}
@@ -49,7 +57,7 @@ function Room(){
                     <VideoConference/>
                 </LiveKitRoom>
             </div>
-            <ChatPanel roomId={roomId} currentUser={user}/>
+            <ChatPanel roomId={roomId} currentUser={currentUser || { username: 'Guest' }}/>
         </div>
     );
 }

@@ -12,9 +12,26 @@ const PORT = process.env.PORT || 5002;
 app.use(cors());
 app.use(express.json());
 
-const authenticateToken = (req, res, next) => {
+const getTokenFromRequest = (req) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+
+  const cookieHeader = req.headers.cookie || '';
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [name, ...value] = cookie.trim().split('=');
+    if (name) {
+      acc[name] = decodeURIComponent(value.join('='));
+    }
+    return acc;
+  }, {});
+
+  return cookies.token;
+};
+
+const authenticateToken = (req, res, next) => {
+  const token = getTokenFromRequest(req);
 
   if (!token) {
     return res.status(401).json({ message: 'Access Token Required' });
