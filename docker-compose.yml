@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   gateway:
     image: nginx:alpine
@@ -9,16 +10,86 @@ services:
     depends_on:
       - user-auth
       - frontend
+      - livekit
+    networks:
+      - studymeet-network
+
+  study_postgres:
+    image: postgres:15-alpine
+    container_name: study_postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=studymeet_auth
+    ports:
+      - "5433:5432" 
+    networks:
+      - studymeet-network
 
   user-auth:
     build: ./services/user-auth
-    env_file:
-      - ./services/user-auth/.env
+    container_name: studymeet-user-auth-1
+    environment:
+      - PORT=5001
+      - DATABASE_URL=postgresql://postgres:password@study_postgres:5432/studymeet_auth?schema=public
+      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
+    depends_on:
+      - study_postgres
     restart: on-failure
+    networks:
+      - studymeet-network
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
+    networks:
+      - studymeet-network
+
+  livekit:
+    image: livekit/livekit-server:v1.5
+    container_name: studymeet-livekit
+    command: --config /livekit.yaml
+    volumes:
+      - ./livekit.yaml:/livekit.yaml
+    ports:
+      - "7800:7800" 
+      - "7801:7801" 
     environment:
-      - VITE_LIVEKIT_URL=ws://localhost:7880
+      - "LIVEKIT_KEYS=devkey: secretsecretsecret"
+    networks:
+      - studymeet-network
+
+  room-service:
+    build: ./services/room-service
+    container_name: studymeet-room-service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=secretsecretsecret
+    networks:
+      - studymeet-network
+    depends_on:
+      - livekit
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  chat-service:
+    build: ./services/chat-service
+    env_file: .env
+    environment:
+      - REDIS_HOST=redis
+      - PORT=3002
+    depends_on:
+      - redis
+    restart: on-failure
+
+networks:
+  studymeet-network:
+    driver: bridge
