@@ -75,6 +75,21 @@ services:
     depends_on:
       - livekit
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  chat-service:
+    build: ./services/chat-service
+    env_file: .env
+    environment:
+      - REDIS_HOST=redis
+      - PORT=3002
+    depends_on:
+      - redis
+    restart: on-failure
+
 networks:
   studymeet-network:
     driver: bridge
