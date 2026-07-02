@@ -1,19 +1,29 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import api from './utils/api';
 import RoomLobby from './RoomLobby';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
+    
+    if (userData && userData !== "undefined") {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error("Failed to parse user data from localStorage", e);
+      }
     }
 
     api.get('/me')
       .then((response) => {
-        setUser(response.data.user);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        if (response.data && response.data.user) {
+          setUser(response.data.user);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        } else {
+          throw new Error("User data missing from response");
+        }
       })
       .catch(() => {
         localStorage.removeItem('user');
@@ -44,7 +54,7 @@ function Dashboard() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justify: 'flex-start',
       fontFamily: 'sans-serif',
       paddingTop: '100px',
       boxSizing: 'border-box'
@@ -58,7 +68,7 @@ function Dashboard() {
         background: 'white',
         boxShadow: '0 12px 32px rgba(88, 28, 135, 0.08)',
         display: 'flex',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         alignItems: 'center',
         gap: '20px'
       }}>
