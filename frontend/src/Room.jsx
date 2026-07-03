@@ -45,7 +45,7 @@ function Room(){
         <div style={{ display:'flex'}}>
             <div style={{flex:1}}>
                 <LiveKitRoom
-                    serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc'}
+                    serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc/'}
                     token={token}
                     connect={true}
                     video={true}

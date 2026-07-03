@@ -22,7 +22,7 @@ const subscriber = new Redis({
 
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -51,8 +51,7 @@ io.use((socket, next) => {
   const token = getTokenFromSocket(socket);
 
   if (!token) {
-    socket.user = { username: `guest-${socket.id.slice(0, 6)}` };
-    return next();
+    return next(new Error('Authentication required'));
   }
 
   try {
@@ -60,7 +59,7 @@ io.use((socket, next) => {
     socket.user = decoded;
     next();
   } catch (err) {
-    next(new Error('Invalid token'));
+    return next(new Error('Invalid token'));
   }
 });
 

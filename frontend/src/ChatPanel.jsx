@@ -10,10 +10,10 @@ function ChatPanel({roomId,currentUser}){
     useEffect(()=>{
         if (!roomId) return undefined;
 
-        const socket=io(`http://localhost/chat`,{
-            query:{roomId},
-            withCredentials:true,
-            transports:['websocket','polling']
+        const socket = io('/chat', {
+            query: { roomId },
+            withCredentials: true,
+            transports: ['websocket', 'polling']
         });
         socketRef.current=socket;
         socket.on('message',(msg)=>{
