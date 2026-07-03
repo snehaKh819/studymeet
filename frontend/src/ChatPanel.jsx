@@ -39,15 +39,11 @@ function ChatPanel({roomId,currentUser}){
         setInput('');
     };
 
-    if(!isOpen){
+    if (!isOpen) {
         return (
             <button 
-                onClick={()=>setIsOpen(true)}
-                style={{
-                    position:'fixed',
-                    right:16,
-                    top:16
-                }}
+                onClick={() => setIsOpen(true)}
+                className="chat-toggle-button"
             >
                 Open Chat
             </button>
@@ -55,67 +51,39 @@ function ChatPanel({roomId,currentUser}){
     }
 
     return (
-        <div style={{
-            width: '320px', 
-            height: '100vh', 
-            background: '#fff',
-            borderLeft: '1px solid #e5e7eb', 
-            display: 'flex', 
-            flexDirection: 'column'
-        }}>
-            <div style={{ 
-                padding: '12px 16px', 
-                borderBottom: '1px solid #e5e7eb', display: 'flex', 
-                justifyContent: 'space-between' 
-            }}>
-                <strong>Chat</strong>
-                <button onClick={()=>setIsOpen(false)}>×</button>
+        <div className="chat-panel">
+            <div className="chat-panel-header">
+                <div>
+                    <h3>Chat</h3>
+                    <p className="chat-subtitle">Live room messages</p>
+                </div>
+                <button className="chat-close" onClick={() => setIsOpen(false)}>×</button>
             </div>
 
-            <div style={{ 
-                flex: 1, 
-                overflowY: 'auto', 
-                padding: '12px 16px' 
-            }}>
-                {messages.map((msg,i)=>(
-                    <div key={i} style={{ marginBottom: '10px' }}>
-                        <strong style={{ 
-                            fontSize: '13px', 
-                            color: '#581c87' 
-                        }}>
-                            {msg.username}:
-                        </strong>
-                        <span style={{ fontSize: '13px' }}>{msg.text}</span>
-                    </div>
-                ))}
+            <div className="chat-messages">
+                {messages.length === 0 ? (
+                    <div className="chat-empty">No messages yet. Start the conversation.</div>
+                ) : (
+                    messages.map((msg, i) => (
+                        <div key={i} className="chat-message">
+                            <div className="chat-message-meta">
+                                <span className="chat-username">{msg.username}</span>
+                                <span className="chat-timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <div className="chat-message-text">{msg.text}</div>
+                        </div>
+                    ))
+                )}
             </div>
 
-            <form onSubmit={sendMessage} style={{ 
-                padding: '12px 16px', 
-                borderTop: '1px solid #e5e7eb', 
-                display: 'flex', 
-                gap: '8px' 
-            }}>
+            <form onSubmit={sendMessage} className="chat-form">
                 <input
                     value={input}
-                    onChange={(e)=>setInput(e.target.value)}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder="Type a message..."
-                    style={{ 
-                        flex: 1, 
-                        padding: '8px', 
-                        borderRadius: '6px', 
-                        border: '1px solid #d8b4fe'
-                    }}
+                    className="chat-input"
                 />
-                <button type="submit" style={{ 
-                    padding: '8px 16px', 
-                    background: '#a855f7', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '6px' 
-                }}>
-                    Send
-                </button>
+                <button type="submit" className="chat-send-button">Send</button>
             </form>
         </div>
     );
