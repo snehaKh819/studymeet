@@ -75,8 +75,8 @@ function Room() {
           serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc/'}
           token={token}
           connect={true}
-          video={true}
-          audio={true}
+          video={false}
+          audio={false}
         >
           <RoomControls roomId={roomId} currentUser={currentUser || { username: 'Guest' }} />
           <div className="room-video">

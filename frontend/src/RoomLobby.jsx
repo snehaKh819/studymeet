@@ -1,7 +1,19 @@
 import {useEffect, useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from './utils/api';
 
+const buttonStyle = {
+  padding: '10px 18px',
+  backgroundColor: '#a855f7',
+  color: 'white',
+  border: 'none',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  fontWeight: '600',
+};
+
 export default function RoomLobby() {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState('');
   const [message, setMessage] = useState('');
@@ -23,7 +35,7 @@ export default function RoomLobby() {
       const response = await api.post('/rooms', { roomName });
       setRooms((prev) => [response.data.room, ...prev]);
       setRoomName('');
-      setMessage('Room created successfully.');
+      navigate(`/room/${response.data.room.id}`);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Unable to create room.');
     }
@@ -55,9 +67,14 @@ export default function RoomLobby() {
         ) : (
           <div style={{ marginTop: '18px', display: 'grid', gap: '16px' }}>
             {rooms.map((room) => (
-              <div key={room.id} style={{ padding: '18px', borderRadius: '14px', border: '1px solid #e5e7eb', background: '#faf5ff' }}>
-                <h4 style={{ margin: 0, color: '#422b7f' }}>{room.roomName}</h4>
-                <p style={{ margin: '8px 0 0', color: '#6b21a8' }}>Host: {room.host?.username || room.host?.email}</p>
+              <div key={room.id} style={{ padding: '18px', borderRadius: '14px', border: '1px solid #e5e7eb', background: '#faf5ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                <div>
+                  <h4 style={{ margin: 0, color: '#422b7f' }}>{room.roomName}</h4>
+                  <p style={{ margin: '8px 0 0', color: '#6b21a8' }}>Host: {room.host?.username || room.host?.email}</p>
+                </div>
+                <button type="button" style={buttonStyle} onClick={() => navigate(`/room/${room.id}`)}>
+                  Join Room
+                </button>
               </div>
             ))}
           </div>
