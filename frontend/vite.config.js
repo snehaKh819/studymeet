@@ -9,19 +9,19 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost',
+        target: 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       '/chat': {
-        target: 'http://localhost',
+        target: 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       '/rtc': {
-        target: 'http://localhost',
+        target: 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,

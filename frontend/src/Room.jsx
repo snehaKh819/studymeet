@@ -4,11 +4,12 @@ import { LiveKitRoom, VideoConference, useDisconnectButton, useLocalParticipant,
 import '@livekit/components-styles';
 import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
+import {Track} from 'livekit-client';
 
 function RoomControls({ roomId, currentUser }) {
   const { isMicrophoneEnabled, isCameraEnabled } = useLocalParticipant();
-  const { buttonProps: micButtonProps, enabled: micEnabled } = useTrackToggle({ source: 'microphone' });
-  const { buttonProps: camButtonProps, enabled: camEnabled } = useTrackToggle({ source: 'camera' });
+  const { buttonProps: micButtonProps, enabled: micEnabled } = useTrackToggle({ source: Track.Source.Microphone });
+  const { buttonProps: camButtonProps, enabled: camEnabled } = useTrackToggle({ source: Track.Source.Camera });
   const { buttonProps: disconnectButtonProps } = useDisconnectButton();
 
   return (
@@ -37,19 +38,23 @@ function Room() {
   const { roomId } = useParams();
   const [token, setToken] = useState(null);
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
+  
+  const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser && storedUser !== 'undefined') {
       try {
-        setCurrentUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch {
-        setCurrentUser(null);
+        return null;
       }
     }
+    return null;
+  });
 
-    getLiveKitToken(roomId).then(setToken).catch(() => setError('Could not join room. Try again.😓'));
+  useEffect(() => {
+    getLiveKitToken(roomId)
+      .then(setToken)
+      .catch(() => setError('Could not join room. Try again. 😓'));
   }, [roomId]);
 
   if (error) {

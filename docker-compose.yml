@@ -27,6 +27,10 @@ services:
       - "5433:5432" 
     networks:
       - studymeet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
 
   user-auth:
     build: ./services/user-auth
@@ -36,7 +40,8 @@ services:
       - DATABASE_URL=postgresql://postgres:password@study_postgres:5432/studymeet_auth?schema=public
       - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
     depends_on:
-      - study_postgres
+      study_postgres:
+        condition: service_healthy
     restart: on-failure
     networks:
       - studymeet-network

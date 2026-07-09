@@ -11,7 +11,6 @@ function ChatPanel({roomId,currentUser}){
         if (!roomId) return undefined;
 
         const socket = io('/chat', {
-            query: { roomId },
             withCredentials: true,
             transports: ['websocket', 'polling']
         });
