@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import Register from './Register';
 import Login from './Login';
@@ -24,59 +24,72 @@ function App() {
 
   return (
     <Router>
-      <nav style={{ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        padding: '14px 40px', 
-        backgroundColor: 'rgba(255, 255, 255, 0.85)', 
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid #e9d5ff', 
-        zIndex: 10,
-        fontFamily: 'sans-serif',
-        boxSizing: 'border-box'
-      }}>
-        
-        <NavLink 
-          to="/" 
-          style={{ textDecoration: 'none', color: '#581c87', fontWeight: '800', fontSize: '20px' }}
-        >
-          StudyMeet
-        </NavLink>
+      <AppContent hoveredTab={hoveredTab} setHoveredTab={setHoveredTab} getNavStyle={getNavStyle} />
+    </Router>
+  );
+}
 
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+function AppContent({ hoveredTab, setHoveredTab, getNavStyle }) {
+  const location = useLocation();
+  const isRoomPage = location.pathname.startsWith('/room/');
+
+  return (
+    <>
+      {!isRoomPage && (
+        <nav style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          padding: '14px 40px', 
+          backgroundColor: 'rgba(255, 255, 255, 0.85)', 
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid #e9d5ff', 
+          zIndex: 10,
+          fontFamily: 'sans-serif',
+          boxSizing: 'border-box'
+        }}>
+          
           <NavLink 
             to="/" 
-            style={({ isActive }) => getNavStyle(isActive, 'home')}
-            onMouseEnter={() => setHoveredTab('home')}
-            onMouseLeave={() => setHoveredTab(null)}
+            style={{ textDecoration: 'none', color: '#581c87', fontWeight: '800', fontSize: '20px' }}
           >
-            Home
+            StudyMeet
           </NavLink>
 
-          <NavLink 
-            to="/register" 
-            style={({ isActive }) => getNavStyle(isActive, 'register')}
-            onMouseEnter={() => setHoveredTab('register')}
-            onMouseLeave={() => setHoveredTab(null)}
-          >
-            Register
-          </NavLink>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <NavLink 
+              to="/" 
+              style={({ isActive }) => getNavStyle(isActive, 'home')}
+              onMouseEnter={() => setHoveredTab('home')}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              Home
+            </NavLink>
 
-          <NavLink 
-            to="/login" 
-            style={({ isActive }) => getNavStyle(isActive, 'login')}
-            onMouseEnter={() => setHoveredTab('login')}
-            onMouseLeave={() => setHoveredTab(null)}
-          >
-            Login
-          </NavLink>
-        </div>
-      </nav>
+            <NavLink 
+              to="/register" 
+              style={({ isActive }) => getNavStyle(isActive, 'register')}
+              onMouseEnter={() => setHoveredTab('register')}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              Register
+            </NavLink>
+
+            <NavLink 
+              to="/login" 
+              style={({ isActive }) => getNavStyle(isActive, 'login')}
+              onMouseEnter={() => setHoveredTab('login')}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              Login
+            </NavLink>
+          </div>
+        </nav>
+      )}
 
       <Routes>
         <Route path="/register" element={<Register />} />
@@ -143,7 +156,7 @@ function App() {
           }
         />
       </Routes>
-    </Router>
+    </>
   );
 }
 

@@ -6,3 +6,5 @@ rtc:
   use_external_ip: false
 logging:
   level: info
+keys:
+  devkey: devsecretkeythatisatleast32characterslong

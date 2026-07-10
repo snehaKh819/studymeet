@@ -58,6 +58,8 @@ services:
 
   frontend:
     build: ./frontend
+    ports:
+      - "3000:3000"
     networks:
       - studymeet-network
     restart: unless-stopped
@@ -71,8 +73,6 @@ services:
     ports:
       - "7800:7800"
       - "7801:7801"
-    environment:
-      - "LIVEKIT_KEYS=devkey:secretsecretsecret"
     networks:
       - studymeet-network
     restart: unless-stopped
@@ -84,7 +84,7 @@ services:
       - PORT=5002
       - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
       - LIVEKIT_API_KEY=devkey
-      - LIVEKIT_API_SECRET=secretsecretsecret
+      - LIVEKIT_API_SECRET=devsecretkeythatisatleast32characterslong
     networks:
       - studymeet-network
     depends_on:

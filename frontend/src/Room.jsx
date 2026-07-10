@@ -1,33 +1,45 @@
 ﻿import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { LiveKitRoom, VideoConference, useDisconnectButton, useLocalParticipant, useTrackToggle } from '@livekit/components-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { LiveKitRoom, VideoConference, useLocalParticipant, useTrackToggle } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
-import {Track} from 'livekit-client';
+import { Track } from 'livekit-client';
+import api from './utils/api';
 
-function RoomControls({ roomId, currentUser }) {
+function RoomControls({ roomId, roomName, currentUser, onLeave }) {
   const { isMicrophoneEnabled, isCameraEnabled } = useLocalParticipant();
-  const { buttonProps: micButtonProps, enabled: micEnabled } = useTrackToggle({ source: Track.Source.Microphone });
-  const { buttonProps: camButtonProps, enabled: camEnabled } = useTrackToggle({ source: Track.Source.Camera });
-  const { buttonProps: disconnectButtonProps } = useDisconnectButton();
+  const micToggle = useTrackToggle({ source: Track.Source.Microphone });
+  const camToggle = useTrackToggle({ source: Track.Source.Camera });
+
+  const handleMicToggle = () => {
+    if (micToggle.toggle) {
+      micToggle.toggle();
+    }
+  };
+
+  const handleCamToggle = () => {
+    if (camToggle.toggle) {
+      camToggle.toggle();
+    }
+  };
 
   return (
     <section className="room-header">
       <div>
         <p className="room-label">Room</p>
-        <h2 className="room-title">{roomId}</h2>
+        <h2 className="room-title">{roomName || roomId}</h2>
         <p className="room-subtitle">{currentUser?.username || currentUser?.email || 'Guest'} is connected</p>
       </div>
       <div className="media-controls">
-        <button {...micButtonProps} className={`control-button ${micEnabled ? 'active' : ''}`}>
-          {micEnabled ? 'Mute' : 'Unmute'}
+        <button onClick={handleMicToggle} className={`control-button ${isMicrophoneEnabled ? 'active' : ''}`}>
+          {isMicrophoneEnabled ? '🎤' : '🔇'}
         </button>
-        <button {...camButtonProps} className={`control-button ${camEnabled ? 'active' : ''}`}>
-          {camEnabled ? 'Camera Off' : 'Camera On'}
+        <button onClick={handleCamToggle} className={`control-button ${isCameraEnabled ? 'active' : ''}`}>
+          {isCameraEnabled ? '📷' : '📹'}
         </button>
-        <button {...disconnectButtonProps} className="control-button disconnect">
-          Disconnect
+        <button onClick={onLeave} className="control-button disconnect">
+          Leave
         </button>
       </div>
     </section>
@@ -36,8 +48,10 @@ function RoomControls({ roomId, currentUser }) {
 
 function Room() {
   const { roomId } = useParams();
+  const navigate = useNavigate();
   const [token, setToken] = useState(null);
   const [error, setError] = useState('');
+  const [roomName, setRoomName] = useState('');
   
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
@@ -56,6 +70,16 @@ function Room() {
       .then(setToken)
       .catch(() => setError('Could not join room. Try again. 😓'));
   }, [roomId]);
+
+  useEffect(() => {
+    api.get(`/auth/rooms/${roomId}`)
+      .then((response) => setRoomName(response.data.room?.roomName || ''))
+      .catch(() => setRoomName(''));
+  }, [roomId]);
+
+  const handleLeave = () => {
+    navigate('/dashboard');
+  };
 
   if (error) {
     return (
@@ -80,12 +104,17 @@ function Room() {
           serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc/'}
           token={token}
           connect={true}
-          video={false}
-          audio={false}
+          video={true}
+          audio={true}
         >
-          <RoomControls roomId={roomId} currentUser={currentUser || { username: 'Guest' }} />
+          <RoomControls 
+            roomId={roomId} 
+            roomName={roomName}
+            currentUser={currentUser || { username: 'Guest' }} 
+            onLeave={handleLeave}
+          />
           <div className="room-video">
-            <VideoConference />
+            <VideoConference showControls={false} />
           </div>
         </LiveKitRoom>
       </main>
