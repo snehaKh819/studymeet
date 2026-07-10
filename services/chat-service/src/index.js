@@ -21,8 +21,9 @@ const subscriber = new Redis({
 });
 
 const io = new Server(httpServer, {
+  path: "/chat",
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: true,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -69,6 +70,8 @@ subscriber.on('message', (channel, message) => {
   io.to(roomId).emit('message', parsedMessage);
 });
 
+const subscribedChannels = new Set();
+
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.user.username} (${socket.id})`);
 
@@ -76,7 +79,11 @@ io.on('connection', (socket) => {
     if (!roomId) return;
 
     socket.join(roomId);
-    subscriber.subscribe(`room:${roomId}`);
+    const channel = `room:${roomId}`;
+    if (!subscribedChannels.has(channel)) {
+      subscribedChannels.add(channel);
+      subscriber.subscribe(channel);
+    }
     console.log(`${socket.user.username} joined room ${roomId}`);
 
     socket.to(roomId).emit('user_joined', {
@@ -114,7 +121,12 @@ io.on('connection', (socket) => {
   });
 });
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => {
+  res.json({ 
+    status:"healthy",
+    service:"chat-service"
+  });
+});
 
 const PORT = process.env.PORT || 3002;
 httpServer.listen(PORT, '0.0.0.0', () => {

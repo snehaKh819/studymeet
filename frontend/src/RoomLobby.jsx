@@ -19,7 +19,7 @@ export default function RoomLobby() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    api.get('/rooms')
+    api.get('/auth/rooms')
       .then((response) => setRooms(response.data.rooms || []))
       .catch(() => setMessage('Unable to load rooms.'));
   }, []);
@@ -32,7 +32,7 @@ export default function RoomLobby() {
       return;
     }
     try {
-      const response = await api.post('/rooms', { roomName });
+      const response = await api.post('/auth/rooms', { roomName });
       setRooms((prev) => [response.data.room, ...prev]);
       setRoomName('');
       navigate(`/room/${response.data.room.id}`);

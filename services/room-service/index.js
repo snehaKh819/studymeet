@@ -85,6 +85,13 @@ app.post('/join', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 });
+// ---------------
+app.get("/health",(req,res)=>{
+  res.json({
+    status:"healthy",
+    service:"room-service"
+  });
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(` Room Microservice running on port ${PORT}`);

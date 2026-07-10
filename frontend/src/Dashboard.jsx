@@ -16,7 +16,7 @@ function Dashboard() {
       }
     }
 
-    api.get('/me')
+    api.get('/auth/me')
       .then((response) => {
         if (response.data && response.data.user) {
           setUser(response.data.user);
@@ -36,7 +36,7 @@ function Dashboard() {
   }
 
   const handleLogout = () => {
-    api.post('/logout')
+    api.post('/auth/logout')
       .then(() => {
         localStorage.removeItem('user');
         window.location.href = '/login';

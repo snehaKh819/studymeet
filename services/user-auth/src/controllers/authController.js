@@ -55,7 +55,6 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Incoming Login Request:", { email, password });
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -66,12 +65,10 @@ export const login = async (req, res) => {
     });
 
     if (!credential) {
-      console.log("User not found in DB for email:", email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, credential.passwordHash);
-    console.log("Bcrypt Match Result:", isPasswordValid);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -104,7 +101,7 @@ export const logout = async (req, res) => {
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
     });
 

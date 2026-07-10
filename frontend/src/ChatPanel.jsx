@@ -10,9 +10,10 @@ function ChatPanel({roomId,currentUser}){
     useEffect(()=>{
         if (!roomId) return undefined;
 
-        const socket = io('/chat', {
+        const socket = io({
+            path:"/chat",
             withCredentials: true,
-            transports: ['websocket', 'polling']
+            transports: ['websocket']
         });
         socketRef.current=socket;
         socket.on('message',(msg)=>{
@@ -63,8 +64,8 @@ function ChatPanel({roomId,currentUser}){
                 {messages.length === 0 ? (
                     <div className="chat-empty">No messages yet. Start the conversation.</div>
                 ) : (
-                    messages.map((msg, i) => (
-                        <div key={i} className="chat-message">
+                    messages.map((msg) => (
+                        <div key={`${msg.timestamp}-${msg.username}`} className="chat-message">
                             <div className="chat-message-meta">
                                 <span className="chat-username">{msg.username}</span>
                                 <span className="chat-timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>

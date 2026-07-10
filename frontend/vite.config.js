@@ -9,19 +9,19 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://gateway',
+        target: process.env.VITE_API_TARGET || 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       '/chat': {
-        target: 'http://gateway',
+        target: process.env.VITE_API_TARGET || 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       '/rtc': {
-        target: 'http://gateway',
+        target: process.env.VITE_API_TARGET || 'http://gateway',
         changeOrigin: true,
         secure: false,
         ws: true,
