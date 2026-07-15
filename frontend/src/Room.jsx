@@ -1,28 +1,21 @@
 ﻿import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LiveKitRoom, VideoConference, useLocalParticipant, useTrackToggle } from '@livekit/components-react';
+import { LiveKitRoom, VideoConference, useTrackToggle } from '@livekit/components-react';
+import { Track } from 'livekit-client';
 import '@livekit/components-styles';
 import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
-import { Track } from 'livekit-client';
 import api from './utils/api';
 
 function RoomControls({ roomId, roomName, currentUser, onLeave }) {
-  const { isMicrophoneEnabled, isCameraEnabled } = useLocalParticipant();
-  const micToggle = useTrackToggle({ source: Track.Source.Microphone });
-  const camToggle = useTrackToggle({ source: Track.Source.Camera });
 
-  const handleMicToggle = () => {
-    if (micToggle.toggle) {
-      micToggle.toggle();
-    }
-  };
+const mic = useTrackToggle({
+  source: Track.Source.Microphone,
+});
 
-  const handleCamToggle = () => {
-    if (camToggle.toggle) {
-      camToggle.toggle();
-    }
-  };
+const cam = useTrackToggle({
+  source: Track.Source.Camera,
+});
 
   return (
     <section className="room-header">
@@ -31,15 +24,30 @@ function RoomControls({ roomId, roomName, currentUser, onLeave }) {
         <h2 className="room-title">{roomName || roomId}</h2>
         <p className="room-subtitle">{currentUser?.username || currentUser?.email || 'Guest'} is connected</p>
       </div>
-      <div className="media-controls">
-        <button onClick={handleMicToggle} className={`control-button ${isMicrophoneEnabled ? 'active' : ''}`}>
-          {isMicrophoneEnabled ? '🎤' : '🔇'}
-        </button>
-        <button onClick={handleCamToggle} className={`control-button ${isCameraEnabled ? 'active' : ''}`}>
-          {isCameraEnabled ? '📷' : '📹'}
-        </button>
+      <div className="room-controls">
+
+<button
+  onClick={() => {
+    mic.toggle();
+  }}
+  className={`control-button ${mic.enabled ? "mic-on" : "mic-off"}`}
+  title={mic.enabled ? "Mute Microphone" : "Unmute Microphone"}
+>
+  {mic.enabled ? "🎤" : "🔇"}
+</button>
+
+<button
+  onClick={() => {
+    cam.toggle();
+  }}
+  className={`control-button ${cam.enabled ? "cam-on" : "cam-off"}`}
+  title={cam.enabled ? "Turn Camera Off" : "Turn Camera On"}
+>
+   {cam.enabled ? "📹" : "📷"}
+</button>
+
         <button onClick={onLeave} className="control-button disconnect">
-          Leave
+          Leave Room
         </button>
       </div>
     </section>
@@ -67,8 +75,14 @@ function Room() {
 
   useEffect(() => {
     getLiveKitToken(roomId)
-      .then(setToken)
-      .catch(() => setError('Could not join room. Try again. 😓'));
+      .then((token) => {
+        console.log('LiveKit token received');
+        setToken(token);
+      })
+      .catch((err) => {
+        console.error('Failed to get LiveKit token:', err);
+        setError('Could not join room. Try again. 😓');
+      });
   }, [roomId]);
 
   useEffect(() => {
@@ -106,6 +120,7 @@ function Room() {
           connect={true}
           video={true}
           audio={true}
+          onDisconnected={() => console.log('Disconnected from LiveKit')}
         >
           <RoomControls 
             roomId={roomId} 
@@ -114,7 +129,7 @@ function Room() {
             onLeave={handleLeave}
           />
           <div className="room-video">
-            <VideoConference showControls={false} />
+            <VideoConference />
           </div>
         </LiveKitRoom>
       </main>
