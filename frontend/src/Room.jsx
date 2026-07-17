@@ -6,6 +6,7 @@ import '@livekit/components-styles';
 import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
 import api from './utils/api';
+import ParticipantList from './ParticipantList';
 
 function RoomControls({ roomId, roomName, currentUser, onLeave }) {
 
@@ -112,8 +113,7 @@ function Room() {
   }
 
   return (
-    <div className="room-page">
-      <main className="room-main">
+    
         <LiveKitRoom
           serverUrl={import.meta.env.VITE_LIVEKIT_URL || 'ws://localhost/rtc/'}
           token={token}
@@ -122,6 +122,8 @@ function Room() {
           audio={true}
           onDisconnected={() => console.log('Disconnected from LiveKit')}
         >
+          <div className="room-page">
+      <main className="room-main">
           <RoomControls 
             roomId={roomId} 
             roomName={roomName}
@@ -131,12 +133,14 @@ function Room() {
           <div className="room-video">
             <VideoConference />
           </div>
-        </LiveKitRoom>
+        
       </main>
       <aside className="chat-panel-wrapper">
+        <ParticipantList />
         <ChatPanel roomId={roomId} currentUser={currentUser || { username: 'Guest' }} />
       </aside>
     </div>
+    </LiveKitRoom>
   );
 }
 
