@@ -467,3 +467,53 @@ html, body, #root {
 .participant-item:last-child {
   border-bottom: none;
 }
+
+.participant-panel{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.participant-panel h3{
+    margin:0 0 15px;
+}
+
+.participant-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+
+.participant-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+}
+
+.participant-item:last-child{
+    border-bottom:none;
+}
+
+.participant-avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#8b5cf6;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+}
+
+.participant-name{
+    font-weight:600;
+}
+
+.you-badge{
+    color:#8b5cf6;
+    font-weight:500;
+}
