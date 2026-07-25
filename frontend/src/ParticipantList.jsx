@@ -13,6 +13,7 @@ function ParticipantList() {
                         <div className="participant-avatar">
                             {participant.identity.charAt(0).toUpperCase()}
                         </div>
+                        
                         <div className="participant-info">
                             <div className="participant-name">
                                 {participant.identity}
@@ -20,6 +21,14 @@ function ParticipantList() {
                                     <span className="you-badge"> (You)</span>
                                 )}
                             </div>
+                        </div>
+                        <div className="participant-icons">
+                            {participant.isMicrophoneEnabled? "🎤" : "🔇"}
+                            
+                        </div>
+                        <div className="participant-icons">
+                            
+                            {participant.isCameraEnabled? "📹" : "📷"}
                         </div>
                     </li>
                 ))}

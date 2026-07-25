@@ -488,9 +488,9 @@ html, body, #root {
 .participant-item{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:10px;
     padding:10px 0;
-    border-bottom:1px solid #eee;
+    border-bottom:1px solid #ececec;
 }
 
 .participant-item:last-child{
@@ -510,10 +510,15 @@ html, body, #root {
 }
 
 .participant-name{
-    font-weight:600;
+    font-weight:500;
 }
 
 .you-badge{
     color:#8b5cf6;
     font-weight:500;
+}
+
+.participant-icons{
+    width:45px;
+    font-size:18px;
 }
