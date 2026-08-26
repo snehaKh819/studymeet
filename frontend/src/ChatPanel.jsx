@@ -4,7 +4,6 @@ import {io} from 'socket.io-client';
 function ChatPanel({roomId,currentUser}){
     const [messages, setMessages] = useState([]);
     const [input,setInput] = useState('');
-    const [isOpen,setIsOpen] = useState(true);
     const socketRef = useRef(null);
 
     useEffect(()=>{
@@ -39,27 +38,8 @@ function ChatPanel({roomId,currentUser}){
         setInput('');
     };
 
-    if (!isOpen) {
-        return (
-            <button 
-                onClick={() => setIsOpen(true)}
-                className="chat-toggle-button"
-            >
-                Open Chat
-            </button>
-        );
-    }
-
     return (
         <div className="chat-panel">
-            <div className="chat-panel-header">
-                <div>
-                    <h3>Chat</h3>
-                    <p className="chat-subtitle">Live room messages</p>
-                </div>
-                <button className="chat-close" onClick={() => setIsOpen(false)}>×</button>
-            </div>
-
             <div className="chat-messages">
                 {messages.length === 0 ? (
                     <div className="chat-empty">No messages yet. Start the conversation.</div>

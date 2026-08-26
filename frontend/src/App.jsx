@@ -55,8 +55,9 @@ function AppContent({ hoveredTab, setHoveredTab, getNavStyle }) {
           
           <NavLink 
             to="/" 
-            style={{ textDecoration: 'none', color: '#581c87', fontWeight: '800', fontSize: '20px' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', textDecoration: 'none', color: '#581c87', fontWeight: '800', fontSize: '20px' }}
           >
+            <img src="/favicon.svg" alt="StudyMeet logo" style={{ width: '28px', height: '28px' }} />
             StudyMeet
           </NavLink>
 
