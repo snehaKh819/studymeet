@@ -48,7 +48,7 @@ function Dashboard() {
   };
 
   return (
-    <div style={{
+    <div className="dashboard-page" style={{
       backgroundColor: '#f3e8ff',
       minHeight: '100vh',
       display: 'flex',
