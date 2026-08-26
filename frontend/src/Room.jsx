@@ -7,6 +7,7 @@ import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
 import api from './utils/api';
 import ParticipantList from './ParticipantList';
+import Whiteboard from './Whiteboard/Whiteboard';
 
 function RoomControls({ roomId, roomName, currentUser, onLeave, activePanel, onTogglePanel }) {
   const mic = useTrackToggle({
@@ -206,14 +207,7 @@ function Room() {
       case 'participants':
         return <ParticipantList />;
       case 'whiteboard':
-        return (
-          <div className="drawer-panel-placeholder">
-            <div>
-              <h3>Whiteboard</h3>
-              <p>Coming soon</p>
-            </div>
-          </div>
-        );
+        return <Whiteboard />;
       case 'notes':
         return (
           <div className="drawer-panel-placeholder">
@@ -271,6 +265,8 @@ function Room() {
         />
 
         <div className="meeting-content">
+           
+
           <main className="video-area">
             <VideoConference />
           </main>
