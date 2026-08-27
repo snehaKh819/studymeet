@@ -265,13 +265,17 @@ function Room() {
         />
 
         <div className="meeting-content">
-           
+          {activePanel === 'whiteboard' ? (
+            <main className="whiteboard-area">
+              <Whiteboard />
+            </main>
+          ) : (
+            <main className="video-area">
+              <VideoConference />
+            </main>
+          )}
 
-          <main className="video-area">
-            <VideoConference />
-          </main>
-
-          {activePanel && (
+          {activePanel && activePanel !== 'whiteboard' && (
             <aside className="feature-drawer" aria-label={drawerTitle || 'Meeting drawer'}>
               <div className="drawer-header">
                 <h3>{drawerTitle}</h3>
