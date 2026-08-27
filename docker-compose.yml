@@ -119,6 +119,20 @@ services:
       timeout: 5s
       retries: 5
 
+  whiteboard-service:
+    build: ./services/whiteboard-service
+    container_name: studymeet-whiteboard
+    environment:
+      - PORT=3003
+    networks:
+      - studymeet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   studymeet-network:
     driver: bridge
