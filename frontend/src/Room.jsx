@@ -2,11 +2,68 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { LiveKitRoom, VideoConference, useTrackToggle } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import { io } from 'socket.io-client';
 import '@livekit/components-styles';
 import { getLiveKitToken } from './lib/livekit';
 import ChatPanel from './ChatPanel';
 import api from './utils/api';
 import ParticipantList from './ParticipantList';
+
+function RoomTimer({ roomId }) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const socket = io('http://localhost', {
+    path: '/socket.io/timer/',
+    transports: ['websocket'],
+    });
+    let timerInterval = null;
+
+    socket.emit('join-room-timer', { roomId });
+
+    socket.on('timer-init', ({ startTime }) => {
+      if (timerInterval) clearInterval(timerInterval);
+
+      const updateTimer = () => {
+        const now = Date.now();
+        const diffInSeconds = Math.floor((now - startTime) / 1000);
+        setElapsedSeconds(diffInSeconds > 0 ? diffInSeconds : 0);
+      };
+
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    });
+
+    socket.on('timer-tick', ({ elapsedSeconds: serverSeconds }) => {
+      setElapsedSeconds(serverSeconds);
+    });
+
+    return () => {
+      if (timerInterval) clearInterval(timerInterval);
+      socket.disconnect();
+    };
+  }, [roomId]);
+
+  const formatTime = (totalSeconds) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    if (hrs > 0) {
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="room-timer-badge">
+      <span>⏱</span>
+      <span>{formatTime(elapsedSeconds)}</span>
+    </div>
+  );
+}
 
 function RoomControls({ roomId, roomName, currentUser, onLeave, activePanel, onTogglePanel }) {
   const mic = useTrackToggle({
@@ -34,6 +91,7 @@ function RoomControls({ roomId, roomName, currentUser, onLeave, activePanel, onT
         <div className="toolbar-room-name" title={roomName || roomId}>
           {roomName || roomId}
         </div>
+        <RoomTimer roomId={roomId} />
       </div>
 
       <div className="toolbar-right">
@@ -74,10 +132,6 @@ function RoomControls({ roomId, roomName, currentUser, onLeave, activePanel, onT
 
           <button type="button" className="toolbar-icon-button" title="Raise hand" aria-label="Raise hand">
             ✋
-          </button>
-
-          <button type="button" className="toolbar-icon-button" title="Timer" aria-label="Timer">
-            ⏱
           </button>
 
           <button type="button" onClick={onLeave} className="leave-button">

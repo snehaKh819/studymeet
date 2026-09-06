@@ -119,6 +119,38 @@ services:
       timeout: 5s
       retries: 5
 
+  timer-service:
+    build: ./services/timer-service
+    container_name: studymeet-timer-service
+
+    environment:
+      - PORT=5003
+      - REDIS_HOST=redis
+      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
+
+    ports:
+      - "5003:5003"
+
+    depends_on:
+      - redis
+
+    restart: unless-stopped
+
+    networks:
+      - studymeet-network
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:5003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   studymeet-network:
     driver: bridge
