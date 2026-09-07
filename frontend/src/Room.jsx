@@ -207,7 +207,7 @@ function Room() {
       case 'participants':
         return <ParticipantList />;
       case 'whiteboard':
-        return <Whiteboard />;
+        return <Whiteboard roomId={roomId} />;
       case 'notes':
         return (
           <div className="drawer-panel-placeholder">
@@ -267,7 +267,7 @@ function Room() {
         <div className="meeting-content">
           {activePanel === 'whiteboard' ? (
             <main className="whiteboard-area">
-              <Whiteboard />
+              <Whiteboard roomId={roomId} />
             </main>
           ) : (
             <main className="video-area">
