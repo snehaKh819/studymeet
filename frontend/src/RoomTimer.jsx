@@ -1,119 +1,321 @@
-function RoomTimer({ roomId }) {
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+import {
+  useEffect,
+  useRef,
+  useState
+} from 'react';
+
+import { io } from 'socket.io-client';
+
+
+function RoomTimer({
+  roomId,
+  isHost
+}) {
+
+  const [
+    elapsedSeconds,
+    setElapsedSeconds
+  ] = useState(0);
+
+  const [
+    running,
+    setRunning
+  ] = useState(false);
+
+  const socketRef =
+    useRef(null);
 
   useEffect(() => {
+
     if (!roomId) {
-      console.log('Timer: No roomId');
+
+      console.log(
+        'Timer: No roomId'
+      );
+
       return;
+
     }
 
-    console.log('Timer: Connecting for room:', roomId);
+    console.log(
+      'Timer: Connecting for room:',
+      roomId
+    );
 
-    const socket = io('http://localhost', {
-      path: '/socket.io/timer/',
-      transports: ['websocket'],
-    });
+    const token =
+      localStorage.getItem('token');
 
-    let timerInterval = null;
 
-    socket.on('connect', () => {
-      console.log('Timer Socket connected:', socket.id);
+    const socket = io(
+      'http://localhost',
+      {
+        path:
+          '/socket.io/timer/',
 
-      socket.emit('join-room-timer', {
-        roomId,
-      });
+        transports:
+          ['websocket'],
 
-      console.log('Timer: join-room-timer emitted');
-    });
+        auth: {
+          token: token || undefined,
+        },
 
-    socket.on('timer-init', ({ startTime }) => {
-      console.log('Timer initialized:', startTime);
-
-      if (timerInterval) {
-        clearInterval(timerInterval);
+        withCredentials: true,
       }
+    );
 
-      const updateTimer = () => {
-        const now = Date.now();
 
-        const diffInSeconds = Math.floor(
-          (now - startTime) / 1000
+    socketRef.current =
+      socket;
+
+    socket.on(
+      'connect',
+      () => {
+
+        console.log(
+          'Timer Socket connected:',
+          socket.id
         );
+
+
+        socket.emit(
+          'join-room-timer',
+          {
+            roomId,
+          }
+        );
+
+      }
+    );
+
+    socket.on(
+      'timer-state',
+      ({
+        elapsedSeconds,
+        running
+      }) => {
+
+        console.log(
+          'Timer state:',
+          elapsedSeconds,
+          running
+        );
+
 
         setElapsedSeconds(
-          diffInSeconds >= 0 ? diffInSeconds : 0
+          elapsedSeconds || 0
         );
-      };
 
-      updateTimer();
 
-      timerInterval = setInterval(
-        updateTimer,
-        1000
-      );
-    });
+        setRunning(
+          Boolean(running)
+        );
 
-    socket.on('timer-tick', ({ elapsedSeconds }) => {
-      console.log(
-        'Timer tick:',
+      }
+    );
+
+    socket.on(
+      'timer-tick',
+      ({
         elapsedSeconds
-      );
+      }) => {
 
-      setElapsedSeconds(elapsedSeconds);
-    });
+        setElapsedSeconds(
+          elapsedSeconds || 0
+        );
 
-    socket.on('connect_error', (error) => {
-      console.error(
-        'Timer Socket connection error:',
-        error
-      );
-    });
+      }
+    );
 
-    socket.on('disconnect', (reason) => {
-      console.log(
-        'Timer Socket disconnected:',
-        reason
-      );
-    });
+    socket.on(
+      'timer-error',
+      ({ message }) => {
+
+        console.warn(
+          'Timer authorization:',
+          message
+        );
+
+        alert(message);
+
+      }
+    );
+
+    socket.on(
+      'connect_error',
+      (error) => {
+
+        console.error(
+          'Timer Socket connection error:',
+          error.message
+        );
+
+      }
+    );
+
+    socket.on(
+      'disconnect',
+      (reason) => {
+
+        console.log(
+          'Timer Socket disconnected:',
+          reason
+        );
+
+      }
+    );
 
     return () => {
-      console.log('Timer: Cleaning up');
 
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
+      console.log(
+        'Timer: Cleaning up'
+      );
+
 
       socket.disconnect();
+
+      socketRef.current =
+        null;
+
     };
+
   }, [roomId]);
 
-  const formatTime = (totalSeconds) => {
-    const hrs = Math.floor(totalSeconds / 3600);
+  const handleStart = () => {
 
-    const mins = Math.floor(
-      (totalSeconds % 3600) / 60
-    );
+    if (
+      !isHost ||
+      !socketRef.current
+    ) {
 
-    const secs = totalSeconds % 60;
+      return;
 
-    if (hrs > 0) {
-      return (
-        `${hrs.toString().padStart(2, '0')}:` +
-        `${mins.toString().padStart(2, '0')}:` +
-        `${secs.toString().padStart(2, '0')}`
-      );
     }
 
-    return (
-      `${mins.toString().padStart(2, '0')}:` +
-      `${secs.toString().padStart(2, '0')}`
+    console.log(
+      'Starting/resuming timer:',
+      roomId
     );
+
+
+    socketRef.current.emit(
+      'start-timer',
+      {
+        roomId,
+      }
+    );
+
+  };
+
+  const handleStop = () => {
+
+    if (
+      !isHost ||
+      !socketRef.current
+    ) {
+
+      return;
+
+    }
+
+
+    console.log(
+      'Stopping timer:',
+      roomId
+    );
+
+
+    socketRef.current.emit(
+      'stop-timer',
+      {
+        roomId,
+      }
+    );
+
+  };
+
+  const formatTime = (
+    totalSeconds
+  ) => {
+
+    const hrs =
+      Math.floor(
+        totalSeconds / 3600
+      );
+
+    const mins =
+      Math.floor(
+        (totalSeconds % 3600) / 60
+      );
+
+    const secs =
+      totalSeconds % 60;
+
+
+    return (
+      `${hrs
+        .toString()
+        .padStart(2, '0')}:` +
+
+      `${mins
+        .toString()
+        .padStart(2, '0')}:` +
+
+      `${secs
+        .toString()
+        .padStart(2, '0')}`
+    );
+
   };
 
   return (
-    <div className="room-timer-badge">
-      <span>⏱</span>
-      <span>{formatTime(elapsedSeconds)}</span>
+
+    <div className="room-timer-container">
+
+      <div
+        className={`room-timer-badge ${
+          running
+            ? 'timer-running'
+            : 'timer-paused'
+        }`}
+      >
+
+        <span>
+          ⏱
+        </span>
+
+        <span>
+          {formatTime(
+            elapsedSeconds
+          )}
+        </span>
+
+      </div>
+
+      {isHost && (
+
+        <button
+          type="button"
+          className="timer-control-button"
+          onClick={
+            running
+              ? handleStop
+              : handleStart
+          }
+        >
+
+          {running
+            ? '⏹ Stop'
+            : '▶ Start'}
+
+        </button>
+
+      )}
+
     </div>
+
   );
+
 }
+
+
+export default RoomTimer;
