@@ -78,6 +78,7 @@ function RoomControls({
 
         </div>
 
+
         <div
           className="toolbar-room-name"
           title={roomName || roomId}
@@ -126,7 +127,6 @@ function RoomControls({
 
 
         <div className="toolbar-media-actions">
-
 
           <button
             type="button"
@@ -177,6 +177,7 @@ function RoomControls({
               : '📷'}
           </button>
 
+
           <button
             type="button"
             className="toolbar-icon-button"
@@ -185,9 +186,6 @@ function RoomControls({
           >
             ✋
           </button>
-
-
-          {/* LEAVE */}
 
           <button
             type="button"
@@ -416,33 +414,17 @@ function Room() {
 
   }, [roomId]);
 
-
-  const isHost = Boolean(
+const isHost = Boolean(
   roomData?.hostId &&
   currentUser?.userId &&
   roomData.hostId === currentUser.userId
 );
 
-
-  console.log(
-    'Current user:',
-    currentUser
-  );
-
-  console.log(
-    'Room data:',
-    roomData
-  );
-
-  console.log(
-    'Is host:',
-    isHost
-  );
-
-
-  // ==========================================
-  // GET LIVEKIT TOKEN
-  // ==========================================
+console.log('Current user:', currentUser);
+console.log('Room data:', roomData);
+console.log('Room hostId:', roomData?.hostId);
+console.log('Current userId:', currentUser?.userId);
+console.log('Is host:', isHost);
 
   useEffect(() => {
 
@@ -498,14 +480,11 @@ function Room() {
 
   }, [resolvedRoomId]);
 
-
-  
   const handleLeave = () => {
 
     navigate('/dashboard');
 
   };
-
 
   const handleTogglePanel = (panel) => {
 
