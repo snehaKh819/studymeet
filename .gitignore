@@ -5,3 +5,4 @@ build/
 .DS_Store
 *.log
 .vscode/
+studymeet_auth_backup.sql
