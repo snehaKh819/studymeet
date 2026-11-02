@@ -104,6 +104,8 @@ services:
 
   redis:
     image: redis:7-alpine
+    volumes:
+      - studymeet_redis_data:/data
     networks:
       - studymeet-network
     restart: unless-stopped
@@ -173,6 +175,9 @@ services:
 volumes:
   studymeet_postgres_data:
     external: true
+  studymeet_redis_data:
+    external: true
+    name: studymeet_studymeet_redis_data
 
 networks:
   studymeet-network:
