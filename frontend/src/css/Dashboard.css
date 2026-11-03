@@ -1,0 +1,467 @@
+.dashboard-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(5, 12, 25, 0.88) 0%,
+      rgba(5, 12, 25, 0.72) 38%,
+      rgba(5, 12, 25, 0.28) 68%,
+      rgba(5, 12, 25, 0.05) 100%
+    ),
+    url('../assets/dashboard-bg.jpg');
+
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+
+  box-sizing: border-box;
+}
+
+.dashboard-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 42px;
+
+  box-sizing: border-box;
+
+  background: rgba(5, 12, 25, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+
+  z-index: 1000;
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  font-size: 21px;
+  font-weight: 700;
+  color: white;
+}
+
+.dashboard-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.dashboard-logout {
+  padding: 11px 24px;
+
+  background: #9147e8;
+  color: white;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dashboard-logout:hover {
+  background: #9d55ee;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 18px rgba(145, 71, 232, 0.35);
+}
+
+.dashboard-content {
+  width: 100%;
+  min-height: 100vh;
+
+  box-sizing: border-box;
+
+  padding-top: 120px;
+  padding-left: 7%;
+  padding-right: 42%;
+
+  padding-bottom: 60px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.welcome-card {
+  width: 100%;
+  max-width: 540px;
+
+  padding: 36px 40px;
+
+  box-sizing: border-box;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 18, 34, 0.94),
+      rgba(8, 17, 31, 0.88)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.30);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.dashboard-subtitle {
+  margin: 0 0 12px;
+
+  color: #b77aff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 2px;
+}
+
+.welcome-card h1 {
+  margin: 0;
+
+  color: white;
+
+  font-size: 2.35rem;
+  line-height: 1.18;
+  font-weight: 700;
+}
+
+.welcome-card h1 span {
+  color: #b56cff;
+}
+
+.dashboard-description {
+  margin: 16px 0 0;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 15px;
+}
+
+.room-section {
+  width: 100%;
+  max-width: 920px;
+
+  margin-top: 24px;
+}
+
+.room-section > * {
+  border-radius: 20px;
+}
+
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  background: linear-gradient(
+    145deg,
+    #9147e8,
+    #6d28d9
+  );
+
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 6px 20px rgba(145, 71, 232, 0.3);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 24px rgba(145, 71, 232, 0.45);
+}
+
+.profile-dropdown {
+  position: absolute;
+
+  top: calc(100% + 12px);
+  right: 0;
+
+  width: 280px;
+
+  padding: 18px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(8, 18, 34, 0.97),
+    rgba(8, 17, 31, 0.94)
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.4);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  z-index: 1000;
+
+  animation: profileDropdown 0.18s ease-out;
+}
+
+@keyframes profileDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 44px;
+  height: 44px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #9147e8;
+
+  color: white;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profile-details {
+  min-width: 0;
+}
+
+.profile-details h3 {
+  margin: 0;
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-details p {
+  margin: 5px 0 0;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 12px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-divider {
+  height: 1px;
+
+  margin: 16px 0;
+
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-logout {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.8);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.profile-logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.profile-logout span {
+  font-size: 18px;
+}
+
+@media (max-width: 1100px) {
+
+  .dashboard-content {
+    padding-left: 5%;
+    padding-right: 35%;
+  }
+
+  .welcome-card {
+    max-width: 500px;
+  }
+}
+
+
+@media (max-width: 850px) {
+
+  .dashboard-page {
+    background-position: 65% top;
+  }
+
+  .dashboard-navbar {
+    padding: 0 24px;
+  }
+
+  .dashboard-content {
+    padding-left: 24px;
+    padding-right: 24px;
+
+    align-items: center;
+  }
+
+  .welcome-card {
+    max-width: 620px;
+  }
+
+  .room-section {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .dashboard-page {
+    background-position: 65% top;
+
+    background-attachment: scroll;
+
+    background-image:
+      linear-gradient(
+        rgba(5, 12, 25, 0.72),
+        rgba(5, 12, 25, 0.82)
+      ),
+      url('./assets/dashboard-bg.jpg');
+  }
+
+  .dashboard-navbar {
+    height: 64px;
+
+    padding: 0 18px;
+  }
+
+  .dashboard-brand {
+    font-size: 18px;
+  }
+
+  .dashboard-brand img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dashboard-logout {
+    padding: 9px 17px;
+    font-size: 13px;
+  }
+
+  .dashboard-content {
+    padding-top: 90px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 40px;
+  }
+
+  .welcome-card {
+    padding: 28px 24px;
+
+    border-radius: 18px;
+  }
+
+  .welcome-card h1 {
+    font-size: 1.85rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  .room-section {
+    margin-top: 18px;
+  }
+}
