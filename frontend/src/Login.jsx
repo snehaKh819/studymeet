@@ -1,64 +1,237 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import api from './utils/api';
+import './css/Login.css';
+
+import loginBg from './assets/login-bg.jpg';
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
-  
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage('');
 
+    if (!validate()) return;
+
+    setLoading(true);
+
     try {
-      const response = await api.post('/auth/login', { email, password });
-      const userPayload = response.data.user;
-      if (userPayload) {
-        localStorage.setItem('user', JSON.stringify(userPayload));
+      const response = await api.post('/auth/login', {
+        email: email.trim(),
+        password,
+      });
+
+      if (response.data.user) {
+        localStorage.setItem(
+          'user',
+          JSON.stringify(response.data.user)
+        );
       }
+
       navigate('/dashboard');
     } catch (error) {
-      console.error(error);
-      setMessage(error.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Login error:', error);
+
+      setMessage(
+        error.response?.data?.message ||
+          'Login failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '120px auto 50px auto', padding: '20px', border: '1px solid #e9d5ff', borderRadius: '12px', fontFamily: 'sans-serif', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-      <h2 style={{ color: '#581c87', marginTop: 0 }}>Sign In</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ fontWeight: '600', color: '#4b5563', fontSize: '14px' }}>Email Address</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', marginTop: '6px', border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box' }}
+    <div
+      className="login-page"
+      style={{
+        backgroundImage: `url(${loginBg})`,
+      }}
+    >
+      <div className="login-background" />
+
+      <nav className="login-nav">
+        <div className="brand">
+          <img
+            src="/favicon.svg"
+            alt="StudyMeet"
+            className="brand-logo"
           />
+
+          <span>StudyMeet</span>
         </div>
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ fontWeight: '600', color: '#4b5563', fontSize: '14px' }}>Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
-            style={{ width: '100%', padding: '10px', marginTop: '6px', border: '1px solid #d1d5db', borderRadius: '6px', boxSizing: 'border-box' }}
-          />
-        </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', backgroundColor: '#a855f7', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}>
-          {loading ? 'Logging in...' : 'Login'}
+
+        <button
+          className="back-home"
+          onClick={() => navigate('/')}
+        >
+          ← Home
         </button>
-      </form>
-      {message && <p style={{ marginTop: '15px', color: 'red', fontSize: '14px', textAlign: 'center' }}>{message}</p>}
+      </nav>
+
+      <main className="login-content">
+        <div className="login-card">
+
+          <div className="login-heading">
+            <h1>Welcome back</h1>
+
+            <p className="login-subtitle">
+              Sign in to continue to StudyMeet.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate>
+
+            <div className="form-group">
+              <label htmlFor="email">
+                Email address
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+
+                  if (errors.email) {
+                    setErrors({
+                      ...errors,
+                      email: '',
+                    });
+                  }
+                }}
+                className={
+                  errors.email ? 'input-error' : ''
+                }
+              />
+
+              {errors.email && (
+                <span className="field-error">
+                  {errors.email}
+                </span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">
+                Password
+              </label>
+
+              <div className="password-wrapper">
+                <input
+                  id="password"
+                  type={
+                    showPassword ? 'text' : 'password'
+                  }
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+
+                    if (errors.password) {
+                      setErrors({
+                        ...errors,
+                        password: '',
+                      });
+                    }
+                  }}
+                  className={
+                    errors.password
+                      ? 'input-error'
+                      : ''
+                  }
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              {errors.password && (
+                <span className="field-error">
+                  {errors.password}
+                </span>
+              )}
+            </div>
+
+            {message && (
+              <div className="login-message">
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
+            >
+              <span>
+                {loading
+                  ? 'Logging in...'
+                  : 'Login'}
+              </span>
+
+              {!loading && (
+                <span className="button-arrow">
+                  →
+                </span>
+              )}
+            </button>
+          </form>
+
+          <div className="register-prompt">
+            <span>
+              Don't have an account?
+            </span>
+
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+            >
+              Create account →
+            </button>
+          </div>
+
+        </div>
+      </main>
     </div>
   );
 }
