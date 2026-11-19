@@ -1,0 +1,13 @@
+{
+  "name": "execution-service",
+  "version": "1.0.0",
+  "description": "Runs untrusted student code in locked-down, throw-away Docker containers",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.js"
+  },
+  "license": "ISC"
+}

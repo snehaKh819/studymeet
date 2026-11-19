@@ -20,7 +20,7 @@ function Whiteboard({ roomId }) {
 
         console.log('Connecting to whiteboard:', roomId);
 
-        const socket = io('http://localhost/whiteboard', {
+        const socket = io('/whiteboard', {
             path: '/whiteboard/socket.io',
             transports: ['websocket'],
             withCredentials: true

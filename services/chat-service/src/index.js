@@ -4,6 +4,11 @@ const { Server } = require('socket.io');
 const Redis = require('ioredis');
 const jwt = require('jsonwebtoken');
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set');
+  process.exit(1);
+}
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -56,7 +61,7 @@ io.use((socket, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.user = decoded;
     next();
   } catch (err) {

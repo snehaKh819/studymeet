@@ -24,6 +24,18 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
+      '/whiteboard': {
+        target: process.env.VITE_API_TARGET || 'http://gateway',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+      '/socket.io/timer': {
+        target: process.env.VITE_API_TARGET || 'http://gateway',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
       '/rtc': {
         target: process.env.VITE_API_TARGET || 'http://gateway',
         changeOrigin: true,
