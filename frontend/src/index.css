@@ -201,6 +201,22 @@ button {
   overflow: hidden;
 }
 
+.code-editor-area {
+  display: flex;
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.code-editor-area > .code-editor-page {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+}
+
 .video-area > div,
 .video-area > .lk-room-container,
 .video-area .lk-room-container {

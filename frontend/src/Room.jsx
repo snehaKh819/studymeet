@@ -13,7 +13,7 @@ import api from './utils/api';
 import ParticipantList from './ParticipantList';
 import Whiteboard from './Whiteboard/Whiteboard';
 import RoomTimer from './RoomTimer';
-
+import CodeEditor from './CodeEditor/CodeEditor';
 import '@livekit/components-styles';
 
 function RoomControls({
@@ -50,6 +50,11 @@ function RoomControls({
       label: 'Whiteboard',
       value: 'whiteboard',
       icon: '🖊'
+    },
+    {
+      label: 'Code Editor',
+      value: 'code',
+      icon: '💻'
     },
     {
       label: 'Notes',
@@ -669,6 +674,14 @@ console.log('Is host:', isHost);
 
             </main>
 
+          ) : activePanel === 'code' ? (
+
+            <main className="code-editor-area">
+
+              <CodeEditor roomId={resolvedRoomId || roomId} currentUser={currentUser} />
+
+            </main>
+
           ) : (
 
             <main className="video-area">
@@ -681,7 +694,8 @@ console.log('Is host:', isHost);
 
 
           {activePanel &&
-            activePanel !== 'whiteboard' && (
+            activePanel !== 'whiteboard' &&
+            activePanel !== 'code' && (
 
               <aside
                 className="feature-drawer"

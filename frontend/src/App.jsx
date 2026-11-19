@@ -6,6 +6,7 @@ import Login from './Login';
 import Dashboard from './Dashboard';
 import ProtectedRoute from './ProtectedRoute';
 import Room from './Room';
+import CodeEditor from './CodeEditor/CodeEditor';
 
 function App() {
   return (
@@ -21,6 +22,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/workspaces"
+          element={
+            <ProtectedRoute>
+              <CodeEditor />
             </ProtectedRoute>
           }
         />
