@@ -5,6 +5,7 @@ import { computePermissions } from '../lib/permissions.js';
 import { getMembers, isMember, roomExists } from '../lib/roomAccess.js';
 import redis from '../lib/redis.js';
 import { deriveInternalToken } from '../lib/internalToken.js';
+import { hub } from '../collab/hub.js';
 import {
   LANGUAGES,
   SHARING_MODES,
@@ -50,6 +51,14 @@ async function loadWithAccess(req, res) {
   if (!permissions.canView) return notFound();
 
   return { workspace, permissions };
+}
+
+// Saves code so that anyone editing live converges on it (the live document is the
+// source of truth while a workspace is open); falls back to a plain DB write.
+async function persistCode(workspaceId, code) {
+  if (!(await hub.replaceCode(workspaceId, code))) {
+    await prisma.workspace.update({ where: { id: workspaceId }, data: { code, yjsState: null } });
+  }
 }
 
 const requireOwner = (res, permissions) => {
@@ -113,6 +122,7 @@ router.post('/', async (req, res) => {
     include: { editors: true },
   });
   const permissions = computePermissions({ workspace: created, userId, isMember: true });
+  await hub.workspacesChanged(roomId);
   res.status(201).json({ workspace: serialize(created, permissions, { includeCode: true }) });
 });
 
@@ -131,8 +141,12 @@ router.get('/', async (req, res) => {
     orderBy: { updatedAt: 'desc' },
   });
 
+  const presence = await hub.presenceSummaries(rows);
   const workspaces = rows
-    .map((ws) => serialize(ws, computePermissions({ workspace: ws, userId, isMember: true })))
+    .map((ws) => ({
+      ...serialize(ws, computePermissions({ workspace: ws, userId, isMember: true })),
+      presence: presence[ws.id] ?? { activeUsers: 0, ownerOnline: false },
+    }))
     .sort((a, b) => Number(b.permissions.isOwner) - Number(a.permissions.isOwner));
 
   res.json({ workspaces });
@@ -142,7 +156,9 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const found = await loadWithAccess(req, res);
   if (!found) return;
-  res.json({ workspace: serialize(found.workspace, found.permissions, { includeCode: true }) });
+  const live = hub.getLiveCode(found.workspace.id); // freshest text if someone is editing right now
+  const workspace = live === null ? found.workspace : { ...found.workspace, code: live };
+  res.json({ workspace: serialize(workspace, found.permissions, { includeCode: true }) });
 });
 
 // --- Update name / language / sharing mode (owner only) --------------------
@@ -180,6 +196,8 @@ router.patch('/:id', async (req, res) => {
     data,
     include: { editors: true },
   });
+  await hub.onWorkspaceChanged(updated.id);
+  await hub.workspacesChanged(updated.roomId);
   res.json({ workspace: serialize(updated, found.permissions) });
 });
 
@@ -200,12 +218,9 @@ router.put('/:id/code', async (req, res) => {
     return res.status(413).json({ message: `code is too long (max ${MAX_CODE_LENGTH} characters)` });
   }
 
-  const updated = await prisma.workspace.update({
-    where: { id: found.workspace.id },
-    data: { code, yjsState: null },
-    select: { updatedAt: true },
-  });
-  res.json({ updatedAt: updated.updatedAt });
+  await persistCode(found.workspace.id, code);
+  const saved = await prisma.workspace.findUnique({ where: { id: found.workspace.id }, select: { updatedAt: true } });
+  res.json({ updatedAt: saved.updatedAt });
 });
 
 // --- Run (anyone with run permission) --------------------------------------
@@ -228,7 +243,10 @@ router.post('/:id/run', async (req, res) => {
   if (stdin !== undefined && typeof stdin !== 'string') {
     return res.status(400).json({ message: 'stdin must be a string' });
   }
-  let source = workspace.code;
+  // While the workspace is open for live editing, what everyone sees IS the code to run.
+  const live = hub.getLiveCode(workspace.id);
+  let source = live ?? workspace.code;
+  let codeToSave = null;
   if (code !== undefined) {
     if (typeof code !== 'string') return res.status(400).json({ message: 'code must be a string' });
     if (code.length > MAX_CODE_LENGTH) {
@@ -237,7 +255,10 @@ router.post('/:id/run', async (req, res) => {
     if (!permissions.canEdit) {
       return res.status(403).json({ message: 'You can run the saved code but not change it' });
     }
-    source = code;
+    if (live === null) {
+      source = code;
+      codeToSave = code;
+    } // with a live session the shared document wins; the body's code is ignored
   }
   if (!source.trim()) return res.status(400).json({ message: 'There is no code to run' });
 
@@ -255,9 +276,8 @@ router.post('/:id/run', async (req, res) => {
   }
 
   try {
-    if (code !== undefined) {
-      await prisma.workspace.update({ where: { id: workspace.id }, data: { code, yjsState: null } });
-    }
+    if (codeToSave !== null) await persistCode(workspace.id, codeToSave);
+    hub.broadcast(workspace.id, 'run:started', { by: req.user.displayName });
 
     let response;
     try {
@@ -272,6 +292,7 @@ router.post('/:id/run', async (req, res) => {
       });
     } catch (err) {
       console.error('execution-service unreachable:', err.message);
+      hub.broadcast(workspace.id, 'run:error', { by: req.user.displayName, message: 'The code runner is unavailable right now' });
       return res.status(503).json({ message: 'The code runner is unavailable right now' });
     }
 
@@ -280,13 +301,19 @@ router.post('/:id/run', async (req, res) => {
       // pass through the runner's own user-facing errors; hide everything else
       const passThrough = [400, 413, 429, 503].includes(response.status);
       console.error('execution-service responded', response.status, payload.message);
+      hub.broadcast(workspace.id, 'run:error', {
+        by: req.user.displayName,
+        message: passThrough ? payload.message : 'The code runner failed. Try again.',
+      });
       return res
         .status(passThrough ? response.status : 502)
         .json({ message: passThrough ? payload.message : 'The code runner failed. Try again.' });
     }
 
     const { stdout, stderr, exitCode, timedOut, oomKilled, truncated, durationMs } = payload;
-    res.json({ language: workspace.language, result: { stdout, stderr, exitCode, timedOut, oomKilled, truncated, durationMs } });
+    const result = { stdout, stderr, exitCode, timedOut, oomKilled, truncated, durationMs };
+    hub.broadcast(workspace.id, 'run:result', { by: req.user.displayName, language: workspace.language, result });
+    res.json({ language: workspace.language, result });
   } finally {
     await redis.del(lockKey).catch(() => {});
   }
@@ -297,6 +324,7 @@ router.delete('/:id', async (req, res) => {
   const found = await loadWithAccess(req, res);
   if (!found || !requireOwner(res, found.permissions)) return;
   await prisma.workspace.delete({ where: { id: found.workspace.id } });
+  await hub.onWorkspaceDeleted(found.workspace.id, found.workspace.roomId);
   res.status(204).end();
 });
 
@@ -332,6 +360,7 @@ router.put('/:id/editors/:userId', async (req, res) => {
     create: { workspaceId: found.workspace.id, userId, userName: members[userId] },
     update: { userName: members[userId] },
   });
+  await hub.onWorkspaceChanged(found.workspace.id);
   res.json({ editors: await listEditors(found.workspace.id) });
 });
 
@@ -343,6 +372,7 @@ router.delete('/:id/editors/:userId', async (req, res) => {
   if (!isUuid(userId)) return res.status(400).json({ message: 'Invalid userId' });
 
   await prisma.workspaceEditor.deleteMany({ where: { workspaceId: found.workspace.id, userId } });
+  await hub.onWorkspaceChanged(found.workspace.id);
   res.status(204).end();
 });
 

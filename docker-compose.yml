@@ -208,8 +208,6 @@ services:
       - PORT=5005
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
     volumes:
-      # Lets this service start the throw-away sandbox containers.
-      # NOTE: access to the Docker socket is powerful - see services/execution-service/README.md
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - studymeet-network

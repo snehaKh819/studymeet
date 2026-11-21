@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
-function parseCookies(req) {
-  return (req.headers.cookie || '')
+export function parseCookies(header = '') {
+  return header
     .split(';')
     .map((c) => c.trim())
     .filter(Boolean)
@@ -12,23 +12,27 @@ function parseCookies(req) {
     }, {});
 }
 
-export function authenticate(req, res, next) {
-  const header = req.headers.authorization;
-  const token = header?.startsWith('Bearer ') ? header.slice(7) : parseCookies(req).token;
-
-  if (!token) return res.status(401).json({ message: 'Authentication required' });
-
+// Returns { userId, email, displayName } or null. displayName = the same identity LiveKit uses.
+export function userFromToken(token) {
+  if (!token) return null;
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (!payload.userId) throw new Error('missing userId');
-    req.token = token;
-    req.user = {
-      userId: payload.userId,
-      email: payload.email,
-      displayName: payload.username || payload.email, // same identity LiveKit uses
-    };
-    return next();
+    if (!payload.userId) return null;
+    return { userId: payload.userId, email: payload.email, displayName: payload.username || payload.email };
   } catch {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    return null;
   }
+}
+
+export function authenticate(req, res, next) {
+  const header = req.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice(7) : parseCookies(req.headers.cookie).token;
+
+  if (!token) return res.status(401).json({ message: 'Authentication required' });
+  const user = userFromToken(token);
+  if (!user) return res.status(401).json({ message: 'Invalid or expired token' });
+
+  req.token = token;
+  req.user = user;
+  return next();
 }

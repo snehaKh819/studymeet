@@ -81,11 +81,49 @@ A run takes up to ~10 s, so show a spinner and disable the Run button while wait
 `room-service` `POST /join` records `HSET room:<roomId>:members <userId> <displayName>` with a 12 h TTL.
 "Joined the room" means that key exists. Display name = the LiveKit identity (username, else email).
 
-## Planned (not built yet)
+## Live collaboration (Yjs over Socket.IO)
 
-- Live sync: Yjs over Socket.IO, using `computePermissions()` from `src/lib/permissions.js` so view-only
-  users' updates are rejected server-side. Until then clients use `PUT /:id/code`.
-- Presence (Redis), and broadcasting run output to everyone viewing a workspace.
+Same service, same permission rules (`src/lib/permissions.js`): the server checks them on **every** incoming
+update, so a view-only user cannot change anything even with a modified frontend.
+
+- Connect: Socket.IO at path **`/collab/socket.io`** (through the gateway, cookie auth - nothing extra to send).
+- One Yjs document per workspace; its text is `doc.getText('code')`.
+- The server seeds the document from the saved code, saves it to PostgreSQL every ~2 s while it changes (and on
+  shutdown), and unloads it 30 s after the last person leaves.
+- A REST save (`PUT /code`) or `run` with `{ code }` while people are editing is applied as a normal edit, so
+  everyone converges; `GET /:id` and Run use the live text.
+
+**Frontend: copy `client/collabProvider.js` into the frontend and use it** (`npm i yjs y-protocols lib0 socket.io-client`):
+
+```js
+import { createCollabSocket, WorkspaceCollab, watchRoom } from './lib/collabProvider';
+
+const socket = createCollabSocket();                                   // once per page
+const collab = new WorkspaceCollab(socket, workspaceId, { user: { name: username, color: '#e91e63' } });
+collab.on('synced', ({ permissions }) => { /* bind the editor now */ });
+new MonacoBinding(collab.text, editor.getModel(), new Set([editor]), collab.awareness);   // y-monaco
+editor.updateOptions({ readOnly: collab.readOnly });                   // refresh on collab.on('permissions')
+collab.on('presence', (users) => ...);   // [{ userId, username, mode: 'viewing'|'editing', connections }]
+collab.on('run:started' | 'run:result' | 'run:error', ...);           // output from whoever pressed Run
+collab.on('revoked' | 'deleted', ...);                                 // lost access / workspace deleted
+await collab.requestEditAccess();                                      // viewer -> owner
+watchRoom(socket, roomId, () => refetchSharedWorkspaces());            // keeps the Shared Workspaces list live
+collab.destroy();                                                      // when the panel closes
+```
+
+Do not put starting text into `collab.doc` yourself - the server provides it. Reconnects are automatic and any
+offline edits are merged.
+
+Server events (the client class handles these for you): `ws:join` `ws:leave` `yjs:update` `awareness:update`
+`room:subscribe` `edit:request` (client -> server, all with acknowledgements) and `yjs:update` `awareness:update`
+`presence:update` `permissions:update` `workspace:updated` `workspace:deleted` `ws:revoked` `run:started`
+`run:result` `run:error` `edit:requested` (owner only) `workspaces:changed` (server -> client).
+
+`GET /api/workspaces?roomId=` also returns `presence: { activeUsers, ownerOnline }` per workspace for the
+"live sharing" badges.
+
+Limits: 256 KB per update, 300 updates/s per connection, document trimmed to 200,000 characters.
+Presence lives in Redis (`presence:ws:<id>`) and expires by itself if a server dies.
 
 ## Run / test
 
