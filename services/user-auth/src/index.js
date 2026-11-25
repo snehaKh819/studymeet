@@ -6,6 +6,11 @@ import prisma from './lib/prisma.js';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set');
+  process.exit(1);
+}
+
 const app = express();
 
 const PORT = process.env.PORT || 5001;

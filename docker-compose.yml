@@ -20,6 +20,8 @@ services:
         condition: service_healthy
       timer-service:
         condition: service_healthy
+      workspace-service:
+        condition: service_healthy
     networks:
       - studymeet-network
     restart: unless-stopped
@@ -29,10 +31,10 @@ services:
     container_name: study_postgres
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
       - POSTGRES_DB=studymeet_auth
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - studymeet_postgres_data:/var/lib/postgresql/data
     networks:
@@ -48,8 +50,8 @@ services:
     container_name: studymeet-user-auth-1
     environment:
       - PORT=5001
-      - DATABASE_URL=postgresql://postgres:password@study_postgres:5432/studymeet_auth?schema=public
-      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-password}@study_postgres:5432/studymeet_auth?schema=public
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
     depends_on:
       study_postgres:
         condition: service_healthy
@@ -74,6 +76,8 @@ services:
     image: livekit/livekit-server:v1.5
     container_name: studymeet-livekit
     command: --config /livekit.yaml
+    environment:
+      - "LIVEKIT_KEYS=${LIVEKIT_API_KEY:?Set LIVEKIT_API_KEY in .env}: ${LIVEKIT_API_SECRET:?Set LIVEKIT_API_SECRET in .env}"
     volumes:
       - ./livekit.yaml:/livekit.yaml
     ports:
@@ -88,13 +92,15 @@ services:
     container_name: studymeet-room-service
     environment:
       - PORT=5002
-      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
-      - LIVEKIT_API_KEY=devkey
-      - LIVEKIT_API_SECRET=devsecretkeythatisatleast32characterslong
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:?Set LIVEKIT_API_KEY in .env}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:?Set LIVEKIT_API_SECRET in .env}
+      - REDIS_HOST=redis
     networks:
       - studymeet-network
     depends_on:
       - livekit
+      - redis
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:5002/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
@@ -115,7 +121,7 @@ services:
     environment:
       - REDIS_HOST=redis
       - PORT=3002
-      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
     depends_on:
       - redis
     restart: unless-stopped
@@ -147,10 +153,7 @@ services:
     environment:
       - PORT=5003
       - REDIS_HOST=redis
-      - JWT_SECRET=9b1deb4d3b7d4f899a1d2e3f4g5h6i7j8k9l0
-
-    ports:
-      - "5003:5003"
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
 
     depends_on:
       - redis
@@ -171,6 +174,52 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  workspace-service:
+    build: ./services/workspace-service
+    container_name: studymeet-workspace-service
+    environment:
+      - PORT=5004
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-password}@study_postgres:5432/studymeet_workspaces?schema=public
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
+      - REDIS_HOST=redis
+      - USER_AUTH_URL=http://user-auth:5001
+      - EXECUTION_URL=http://execution-service:5005
+    depends_on:
+      study_postgres:
+        condition: service_healthy
+      user-auth:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      execution-service:
+        condition: service_started
+    networks:
+      - studymeet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5004/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  execution-service:
+    build: ./services/execution-service
+    container_name: studymeet-execution-service
+    environment:
+      - PORT=5005
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - studymeet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5005/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   studymeet_postgres_data:

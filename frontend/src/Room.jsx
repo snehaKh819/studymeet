@@ -614,7 +614,7 @@ console.log('Is host:', isHost);
 
       serverUrl={
         import.meta.env.VITE_LIVEKIT_URL ||
-        'ws://localhost/rtc/'
+        `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/rtc/`
       }
 
       token={token}

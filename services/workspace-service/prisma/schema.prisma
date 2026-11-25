@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SharingMode {
+  PRIVATE
+  VIEW_ONLY
+  COLLABORATIVE
+}
+
+// One personal workspace per participant per room.
+model Workspace {
+  id          String      @id @default(uuid())
+  roomId      String      @map("room_id")
+  ownerId     String      @map("owner_id")
+  ownerName   String      @map("owner_name")
+  name        String      @default("Untitled")
+  language    String      @default("python")
+  sharingMode SharingMode @default(PRIVATE) @map("sharing_mode")
+  code        String      @default("")
+  yjsState    Bytes?      @map("yjs_state")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  editors WorkspaceEditor[]
+
+  @@unique([roomId, ownerId])
+  @@index([roomId])
+  @@map("workspaces")
+}
+
+// Participants the owner allowed to edit (only effective in COLLABORATIVE mode).
+model WorkspaceEditor {
+  workspaceId String    @map("workspace_id")
+  userId      String    @map("user_id")
+  userName    String    @map("user_name")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+  @@map("workspace_editors")
+}

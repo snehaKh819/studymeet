@@ -15,7 +15,7 @@ function RoomTimer({ roomId, isHost }) {
 
     console.log('Timer: Connecting for room:', roomId);
 
-    const socket = io('http://localhost', {
+    const socket = io({
       path: '/socket.io/timer/',
       transports: ['websocket'],
     });
