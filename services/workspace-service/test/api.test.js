@@ -90,7 +90,7 @@ test('creating for a room that does not exist is a 404', async () => {
   }
 });
 
-test('create is idempotent: one personal workspace per user per room', async () => {
+test('a participant can create multiple personal workspaces in one room', async () => {
   const first = await call('POST', '/workspaces', 'alice', { roomId, name: 'My code', language: 'javascript' });
   assert.equal(first.status, 201);
   assert.equal(first.body.workspace.sharingMode, 'PRIVATE');
@@ -98,13 +98,23 @@ test('create is idempotent: one personal workspace per user per room', async () 
   assert.equal(first.body.workspace.permissions.isOwner, true);
   workspaceId = first.body.workspace.id;
 
-  const again = await call('POST', '/workspaces', 'alice', { roomId });
-  assert.equal(again.status, 200);
-  assert.equal(again.body.workspace.id, workspaceId);
+  const existing = await call('POST', '/workspaces', 'alice', { roomId });
+  assert.equal(existing.status, 200);
+  assert.equal(existing.body.workspace.id, workspaceId);
+
+  const second = await call('POST', '/workspaces', 'alice', { roomId, createNew: true });
+  assert.equal(second.status, 201);
+  assert.notEqual(second.body.workspace.id, workspaceId);
+  assert.equal(second.body.workspace.permissions.isOwner, true);
+
+  const list = await call('GET', `/workspaces?roomId=${roomId}`, 'alice');
+  assert.equal(list.status, 200);
+  assert.equal(list.body.workspaces.filter(({ permissions }) => permissions.isOwner).length, 2);
 });
 
 test('validation', async () => {
   assert.equal((await call('POST', '/workspaces', 'alice', { roomId: 'not-a-uuid' })).status, 400);
+  assert.equal((await call('POST', '/workspaces', 'alice', { roomId, createNew: 'yes' })).status, 400);
   assert.equal((await call('POST', '/workspaces', 'bob', { roomId, language: 'cobol' })).status, 400);
   assert.equal((await call('PATCH', `/workspaces/${workspaceId}`, 'alice', { sharingMode: 'PUBLIC' })).status, 400);
   assert.equal((await call('PATCH', `/workspaces/${workspaceId}`, 'alice', { name: 'x'.repeat(61) })).status, 400);

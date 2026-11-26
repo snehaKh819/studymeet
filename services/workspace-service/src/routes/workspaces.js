@@ -83,12 +83,15 @@ router.get('/participants', async (req, res) => {
   res.json({ participants });
 });
 
-// --- Create (or return the existing) personal workspace for a room --------
+// --- Create a personal workspace for a room -------------------------------
 router.post('/', async (req, res) => {
-  const { roomId, name, language } = req.body ?? {};
+  const { roomId, name, language, createNew = false } = req.body ?? {};
   const { userId, displayName } = req.user;
 
   if (!isUuid(roomId)) return res.status(400).json({ message: 'A valid roomId is required' });
+  if (typeof createNew !== 'boolean') {
+    return res.status(400).json({ message: 'createNew must be a boolean' });
+  }
   if (language !== undefined && !LANGUAGES.includes(language)) {
     return res.status(400).json({ message: `language must be one of: ${LANGUAGES.join(', ')}` });
   }
@@ -102,13 +105,16 @@ router.post('/', async (req, res) => {
     return res.status(404).json({ message: 'Room not found' });
   }
 
-  const existing = await prisma.workspace.findUnique({
-    where: { roomId_ownerId: { roomId, ownerId: userId } },
-    include: { editors: true },
-  });
-  if (existing) {
-    const permissions = computePermissions({ workspace: existing, userId, isMember: true });
-    return res.status(200).json({ workspace: serialize(existing, permissions, { includeCode: true }) });
+  if (!createNew) {
+    const existing = await prisma.workspace.findFirst({
+      where: { roomId, ownerId: userId },
+      orderBy: { updatedAt: 'desc' },
+      include: { editors: true },
+    });
+    if (existing) {
+      const permissions = computePermissions({ workspace: existing, userId, isMember: true });
+      return res.status(200).json({ workspace: serialize(existing, permissions, { includeCode: true }) });
+    }
   }
 
   const created = await prisma.workspace.create({
@@ -126,7 +132,7 @@ router.post('/', async (req, res) => {
   res.status(201).json({ workspace: serialize(created, permissions, { includeCode: true }) });
 });
 
-// --- List: my workspace + everyone else's non-private ones in the room -----
+// --- List: my workspaces + everyone else's non-private ones in the room ---
 router.get('/', async (req, res) => {
   const { roomId } = req.query;
   const { userId } = req.user;

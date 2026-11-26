@@ -12,7 +12,7 @@ enum SharingMode {
   COLLABORATIVE
 }
 
-// One personal workspace per participant per room.
+// Each participant can create multiple workspaces in a room.
 model Workspace {
   id          String      @id @default(uuid())
   roomId      String      @map("room_id")
@@ -28,7 +28,6 @@ model Workspace {
 
   editors WorkspaceEditor[]
 
-  @@unique([roomId, ownerId])
   @@index([roomId])
   @@map("workspaces")
 }

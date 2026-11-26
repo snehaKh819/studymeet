@@ -27,8 +27,8 @@ All endpoints need the login cookie. Errors look like `{ "message": "..." }`.
 
 | Method & path | Who | What |
 |---|---|---|
-| `POST /api/workspaces` `{ roomId, name?, language? }` | room member | Create **my** workspace for the room, or return the existing one (201 new / 200 existing) |
-| `GET /api/workspaces?roomId=` | room member | My workspace + every non-private workspace in the room (no `code` in the list) |
+| `POST /api/workspaces` `{ roomId, name?, language?, createNew? }` | room member | Return my latest workspace (200), or create one if none exists (201); set `createNew: true` to create another (201) |
+| `GET /api/workspaces?roomId=` | room member | My workspaces + every non-private workspace in the room (no `code` in the list) |
 | `GET /api/workspaces/:id` | anyone who can view | One workspace, including `code` |
 | `PATCH /api/workspaces/:id` `{ name?, language?, sharingMode? }` | owner | Rename, change language, change sharing mode |
 | `PUT /api/workspaces/:id/code` `{ code }` | `canEdit` | Save code (max 200,000 chars) |
@@ -57,8 +57,8 @@ Workspace shape:
 Status codes: `400` bad input, `401` not logged in, `403` you can see it but not do that (or you haven't
 joined the room), `404` doesn't exist **or you may not see it** (deliberately the same), `413` code too big.
 
-Typical frontend flow: join the room (LiveKit) -> `POST /api/workspaces {roomId}` -> `GET ?roomId=` for the
-"Shared Workspaces" list -> open one with `GET /:id` -> `PUT /:id/code` to save.
+Typical frontend flow: join the room (LiveKit) -> `POST /api/workspaces {roomId}` to load or create the
+default workspace -> use `createNew: true` to create another -> open one with `GET /:id` -> `PUT /:id/code` to save.
 
 ## Running code
 

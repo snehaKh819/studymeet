@@ -202,6 +202,7 @@ function CodeEditor({ roomId, currentUser }) {
   const [runStatus, setRunStatus] = useState('Ready');
   const [isLoading, setIsLoading] = useState(Boolean(roomId));
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
   const [workspaceError, setWorkspaceError] = useState('');
   const [showSharing, setShowSharing] = useState(false);
   const [copyMessage, setCopyMessage] = useState('');
@@ -493,22 +494,21 @@ function CodeEditor({ roomId, currentUser }) {
     let isMounted = true;
 
     api.post('/workspaces', { roomId })
-      .then(() => loadRoomWorkspaces())
-      .then((nextWorkspaces) => {
+      .then(({ data }) => {
+        const workspaceId = data?.workspace?.id;
+        if (typeof workspaceId !== 'string') {
+          throw new Error('The workspace service did not return your room workspace.');
+        }
+        return loadRoomWorkspaces().then((nextWorkspaces) => (
+          nextWorkspaces.find(({ id }) => id === workspaceId)
+        ));
+      })
+      .then((personalWorkspace) => {
         if (!isMounted) return;
-
-        const personalWorkspace = nextWorkspaces.find(
-          ({ apiPermissions }) => apiPermissions?.isOwner
-        );
         if (!personalWorkspace) {
           throw new Error('Your room workspace was not returned by the workspace service.');
         }
-
-        setActiveWorkspaceId((currentId) => (
-          nextWorkspaces.some(({ id }) => id === currentId)
-            ? currentId
-            : personalWorkspace.id
-        ));
+        setActiveWorkspaceId(personalWorkspace.id);
       })
       .catch((error) => {
         if (isMounted) {
@@ -744,8 +744,37 @@ function CodeEditor({ roomId, currentUser }) {
     setRunStatus('Ready');
   };
 
-  const createWorkspace = () => {
-    if (roomId) return;
+  const createWorkspace = async () => {
+    if (roomId) {
+      setIsCreatingWorkspace(true);
+      setWorkspaceError('');
+      try {
+        const { data } = await api.post('/workspaces', { roomId, createNew: true });
+        const createdWorkspaceId = data?.workspace?.id;
+        if (typeof createdWorkspaceId !== 'string') {
+          throw new Error('The workspace service did not return the created workspace.');
+        }
+
+        const nextWorkspaces = await loadRoomWorkspaces();
+        if (!nextWorkspaces.some(({ id }) => id === createdWorkspaceId)) {
+          throw new Error('The created workspace was not returned by the workspace service.');
+        }
+
+        cancelRenamingWorkspace();
+        setActiveWorkspaceId(createdWorkspaceId);
+        setOutput('');
+        setRunStatus('Ready');
+      } catch (error) {
+        setWorkspaceError(
+          error.response?.data?.message
+            || error.message
+            || 'Could not create a workspace.'
+        );
+      } finally {
+        setIsCreatingWorkspace(false);
+      }
+      return;
+    }
 
     const id = `workspace-${Date.now()}`;
     const workspace = {
@@ -1179,7 +1208,7 @@ function CodeEditor({ roomId, currentUser }) {
                     onClick={createWorkspace}
                     aria-label="Create workspace"
                     title="Create workspace"
-                    disabled={Boolean(roomId)}
+                    disabled={isCreatingWorkspace}
                   >
                     +
                   </button>
