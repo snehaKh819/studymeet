@@ -175,6 +175,21 @@ button {
   background: rgba(148, 163, 184, 0.12);
 }
 
+.toolbar-icon-button.hand-raised {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.toolbar-icon-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.hand-raise-error {
+  color: #fecdd3;
+  font-size: 0.75rem;
+}
+
 .leave-button {
   padding: 10px 18px;
   background: rgba(220, 38, 38, 0.16);
@@ -466,6 +481,10 @@ button {
 .participant-icons {
   font-size: 1rem;
   opacity: 0.9;
+}
+
+.participant-hand-raised {
+  font-size: 1.1rem;
 }
 
 .room-status-card {

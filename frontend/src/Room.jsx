@@ -1,13 +1,16 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   LiveKitRoom,
   VideoConference,
+  useLocalParticipant,
+  useRoomContext,
   useTrackToggle
 } from '@livekit/components-react';
 
-import { Track } from 'livekit-client';
+import { RoomEvent, Track } from 'livekit-client';
 import { getLiveKitToken } from './lib/livekit';
+import { isHandRaised, metadataWithHandRaised } from './lib/handRaise';
 import ChatPanel from './ChatPanel';
 import api from './utils/api';
 import ParticipantList from './ParticipantList';
@@ -34,6 +37,44 @@ function RoomControls({
     source: Track.Source.Camera,
   });
 
+  const { localParticipant } = useLocalParticipant();
+  const room = useRoomContext();
+  const [handRaised, setHandRaised] = useState(false);
+  const [handRequestPending, setHandRequestPending] = useState(false);
+  const [handError, setHandError] = useState('');
+
+  useEffect(() => {
+    const syncHandState = (_previousMetadata, participant) => {
+      if (participant === localParticipant) {
+        setHandRaised(isHandRaised(participant.metadata));
+      }
+    };
+
+    setHandRaised(isHandRaised(localParticipant.metadata));
+    room.on(RoomEvent.ParticipantMetadataChanged, syncHandState);
+
+    return () => {
+      room.off(RoomEvent.ParticipantMetadataChanged, syncHandState);
+    };
+  }, [localParticipant, room]);
+
+  const handleToggleHand = async () => {
+    const nextHandRaised = !handRaised;
+    setHandRequestPending(true);
+    setHandError('');
+
+    try {
+      await localParticipant.setMetadata(
+        metadataWithHandRaised(localParticipant.metadata, nextHandRaised)
+      );
+      setHandRaised(nextHandRaised);
+    } catch (error) {
+      console.error('Failed to update raised hand:', error);
+      setHandError("Couldn't update your raised hand. Please try again.");
+    } finally {
+      setHandRequestPending(false);
+    }
+  };
 
   const featureButtons = [
     {
@@ -185,12 +226,22 @@ function RoomControls({
 
           <button
             type="button"
-            className="toolbar-icon-button"
-            title="Raise hand"
-            aria-label="Raise hand"
+            onClick={handleToggleHand}
+            className={`toolbar-icon-button ${
+              handRaised ? 'hand-raised' : ''
+            }`}
+            title={handRaised ? 'Lower hand' : 'Raise hand'}
+            aria-label={handRaised ? 'Lower hand' : 'Raise hand'}
+            aria-pressed={handRaised}
+            disabled={handRequestPending}
           >
             ✋
           </button>
+          {handError && (
+            <span className="hand-raise-error" role="alert">
+              {handError}
+            </span>
+          )}
 
           <button
             type="button"

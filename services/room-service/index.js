@@ -89,6 +89,7 @@ app.post('/join', authenticateToken, async (req, res) => {
       room: roomId,
       canPublish: true,
       canSubscribe: true,
+      canUpdateOwnMetadata: true,
     });
 
     const token = await at.toJwt();

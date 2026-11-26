@@ -1,7 +1,25 @@
-import {useParticipants, useLocalParticipant} from '@livekit/components-react';
+import { useEffect, useState } from 'react';
+import { useParticipants, useLocalParticipant, useRoomContext } from '@livekit/components-react';
+import { RoomEvent } from 'livekit-client';
+import { isHandRaised } from './lib/handRaise';
+
 function ParticipantList() {
-    const participants=useParticipants();
-    const {localParticipant}=useLocalParticipant();
+    const participants = useParticipants();
+    const { localParticipant } = useLocalParticipant();
+    const room = useRoomContext();
+    const [, setMetadataRevision] = useState(0);
+
+    useEffect(() => {
+        const handleMetadataChanged = () => {
+            setMetadataRevision((revision) => revision + 1);
+        };
+
+        room.on(RoomEvent.ParticipantMetadataChanged, handleMetadataChanged);
+        return () => {
+            room.off(RoomEvent.ParticipantMetadataChanged, handleMetadataChanged);
+        };
+    }, [room]);
+
     return(
         <div className="participant-panel">
             <h3>Participants ({participants.length})</h3>
@@ -27,9 +45,17 @@ function ParticipantList() {
                             
                         </div>
                         <div className="participant-icons">
-                            
                             {participant.isCameraEnabled? "📹" : "📷"}
                         </div>
+                        {isHandRaised(participant.metadata) && (
+                            <span
+                                className="participant-hand-raised"
+                                title="Hand raised"
+                                aria-label="Hand raised"
+                            >
+                                ✋
+                            </span>
+                        )}
                     </li>
                 ))}
             </ul>)
